@@ -4,10 +4,9 @@ import com.dwelldiscover.HostelServer.model.Property;
 import com.dwelldiscover.HostelServer.dto.PropertyDTO;
 import com.dwelldiscover.HostelServer.repository.PropertyRepository;
 import com.dwelldiscover.HostelServer.repository.UserRepository;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
+import com.dwelldiscover.HostelServer.model.User;
 import java.util.List;
 
 @Service
@@ -19,6 +18,10 @@ public class PropertyService {
     @Autowired
     private UserRepository userRepository;
 
+    public User getUserByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+    }
     // SEARCH or ALL
     public List<Property> searchProperties(String search) {
         if (search == null || search.trim().isEmpty()) {
@@ -29,7 +32,7 @@ public class PropertyService {
 
     // GET BY OWNER
     public List<Property> getByOwner(String ownerId) {
-        return propertyRepository.findByOwnerId(ownerId);
+        return propertyRepository.findByOwneruserId(ownerId);
     }
 
     // CREATE

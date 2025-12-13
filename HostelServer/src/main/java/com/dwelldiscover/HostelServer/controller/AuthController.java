@@ -16,7 +16,10 @@ import java.util.*;
 @RequestMapping("/auth")
 @CrossOrigin(origins = "http://localhost:3000")
 public class AuthController {
-
+    @Autowired
+    private OwnerRepository ownerRepository;
+    @Autowired
+    private StudentRepository studentRepository;
     @Autowired private AuthService authService;
     @Autowired private EmailService emailService;
     @Autowired private OtpRepository otpRepository;
@@ -32,7 +35,28 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody User user) {
         try {
-            return ResponseEntity.ok(Map.of("message", authService.register(user)));
+            // 1️⃣ First register user normally using existing logic
+            String result = authService.register(user);
+
+            // 2️⃣ Fetch saved user from DB (because authService already saved it)
+            Optional<User> savedUserOpt = userRepository.findByEmail(user.getEmail());
+
+            if (savedUserOpt.isPresent()) {
+                User savedUser = savedUserOpt.get();
+
+                // 3️⃣ If role = STUDENT (role id = 3) → Save inside students collection also
+                if (savedUser.getRole() != null && savedUser.getRole().getId() == 3) {
+
+                    Student student = new Student();
+                    student.setUserId(savedUser.getId());
+                    student.setVerified(false);
+
+                    studentRepository.save(student);
+                }
+            }
+
+            return ResponseEntity.ok(Map.of("message", result));
+
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
@@ -100,6 +124,8 @@ public class AuthController {
                     Map.of(
                             "token", token,
                             "email", user.getEmail(),
+                            "name", user.getName(),
+                            "userId", user.getId(),
                             "role", user.getRole().getName(),
                             "permissions", permissionsList
                     )

@@ -8,7 +8,7 @@ export default function Footer() {
       <Link href="/" className="text-white hover:text-blue-600">Home</Link>
       <Link href="/student-ui/About" className="text-white hover:text-blue-600">About</Link>
       <Link href="/student-ui/Explore" className="text-white hover:text-blue-600">Explore</Link>
-      <Link href="/student-ui/SignIn" className="text-white hover:text-blue-600">SignIn</Link>
+      <Link href="/student-ui/SignUp" className="text-white hover:text-blue-600">SignUp</Link>
       <Link href="/student-ui/ContactUs" className="text-white hover:text-blue-600">Contact Us</Link>
     </footer>
   );

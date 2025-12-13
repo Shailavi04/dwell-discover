@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import ProtectedRoute from "@/app/panel/components/ProtectedRoute";
-import { Search, PenLine } from "lucide-react";
+import { Search } from "lucide-react";
+import DynamicTable from "../components/DynamicTable";
 
 interface Role {
   id: number;
@@ -99,6 +100,33 @@ export default function RolesPage() {
     return <div className="p-6">Loading Roles...</div>;
   }
 
+  // -------------------------------
+  // 🔥 DYNAMIC TABLE SETUP
+  // -------------------------------
+
+  const filteredRoles = roles.filter((r) =>
+    r.name.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const tableData = filteredRoles.map((r) => ({
+    ...r,
+    permissionsText: r.permissions.join(", "),
+  }));
+
+  const columns = [
+    { key: "name", label: "Role", sortable: true },
+    { key: "permissionsText", label: "Permissions" },
+  ];
+
+  const actions = [
+    {
+      label: "Edit",
+      className:
+        "bg-yellow-400 hover:bg-yellow-500 text-black px-3 py-1 rounded-md",
+      onClick: (row: any) => openModal(row),
+    },
+  ];
+
   return (
     <ProtectedRoute allowedPermissions={["roles"]}>
       <div className="p-6 text-gray-800">
@@ -118,51 +146,13 @@ export default function RolesPage() {
           </div>
         </div>
 
-        {/* TABLE */}
-     {/* TABLE */}
-<div className="overflow-x-auto bg-white rounded-lg shadow">
-  <table className="w-full border-collapse border border-gray-300 text-sm">
-    <thead>
-      <tr className="bg-gray-100 text-center">
-        <th className="p-3 border">Role</th>
-        <th className="p-3 border">Permissions</th>
-        <th className="p-3 border">Actions</th>
-      </tr>
-    </thead>
-
-    <tbody>
-      {roles
-        .filter((r) =>
-          r.name.toLowerCase().includes(search.toLowerCase())
-        )
-        .map((role) => (
-          <tr key={role.id} className="hover:bg-gray-50 text-center">
-            <td className="p-3 border font-semibold">{role.name}</td>
-            <td className="p-3 border text-gray-700">
-              {role.permissions.join(", ")}
-            </td>
-            <td className="p-3 border">
-              <button
-                onClick={() => openModal(role)}
-                className="bg-yellow-400 hover:bg-yellow-500 px-3 py-1 rounded-md flex items-center gap-1 mx-auto"
-              >
-                <PenLine size={14} />
-                Edit
-              </button>
-            </td>
-          </tr>
-        ))}
-
-      {roles.length === 0 && (
-        <tr>
-          <td colSpan={3} className="p-6 text-gray-500 text-center">
-            No roles found
-          </td>
-        </tr>
-      )}
-    </tbody>
-  </table>
-</div>
+        {/* 🔥 DYNAMIC TABLE */}
+        <DynamicTable
+          data={tableData}
+          columns={columns}
+          actions={actions}
+          perPage={10}
+        />
 
         {/* MODAL */}
         {showModal && selectedRole && (

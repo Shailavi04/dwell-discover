@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { Search } from "lucide-react";
+import DynamicTable from "../components/DynamicTable";
 
 type Owner = {
   id: string;
-  userId: string; // Reference to Users collection
+  userId: string;
   verified: boolean;
   documents: string[];
   businessName?: string;
@@ -24,9 +25,11 @@ export default function OwnersPage() {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"all" | "verified" | "unverified">("all");
-  const token = typeof window !== "undefined" ? localStorage.getItem("token") : "";
 
-  // fetch owners depending on filter
+  const token =
+    typeof window !== "undefined" ? localStorage.getItem("token") : "";
+
+  // Fetch owners based on filter
   const fetchOwners = async () => {
     try {
       setLoading(true);
@@ -60,9 +63,9 @@ export default function OwnersPage() {
 
   useEffect(() => {
     fetchOwners();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filter]);
 
+  // Toggle verification
   const toggleVerify = async (id: string, verified: boolean) => {
     try {
       const res = await fetch(`http://localhost:9092/api/owners/${id}/verify`, {
@@ -75,13 +78,10 @@ export default function OwnersPage() {
       });
 
       if (!res.ok) {
-        const text = await res.text().catch(() => "");
-        console.error("Failed to update verification:", res.status, text);
         alert("Failed to update verification status");
         return;
       }
 
-      // refetch with same filter
       fetchOwners();
     } catch (err) {
       console.error("Toggle verify error:", err);
@@ -89,8 +89,8 @@ export default function OwnersPage() {
     }
   };
 
+  // Filter search
   const filteredOwners = owners.filter((o) => {
-    if (!search) return true;
     const q = search.toLowerCase();
     return (
       (o.user?.name ?? "").toLowerCase().includes(q) ||
@@ -99,7 +99,47 @@ export default function OwnersPage() {
     );
   });
 
-  if (loading) return <div className="p-6 text-gray-800">Loading owners...</div>;
+  if (loading)
+    return <div className="p-6 text-gray-800">Loading owners...</div>;
+
+  // ---------------------------------------
+  // 🔥 DYNAMIC TABLE CONFIGURATION
+  // ---------------------------------------
+
+  const tableData = filteredOwners.map((o) => ({
+    ...o,
+
+    ownerName: o.user?.name ?? "-",
+    email: o.user?.email ?? "-",
+    business: o.businessName ?? "-",
+
+    verifiedBadge: o.verified ? (
+      <span className="text-green-600 font-semibold">Verified</span>
+    ) : (
+      <span className="text-red-600 font-semibold">Not Verified</span>
+    ),
+  }));
+
+  const columns = [
+    { key: "ownerName", label: "Owner Name", sortable: true },
+    { key: "email", label: "Email", sortable: true },
+    { key: "business", label: "Business" },
+    { key: "verifiedBadge", label: "Verified" },
+  ];
+
+  const actions = [
+    {
+      label: "View Profile",
+      className: "bg-blue-600 hover:bg-blue-700",
+      onClick: (row: any) =>
+        (window.location.href = `/panel/owners/${row.id}`),
+    },
+    {
+      label: "Toggle Verify",
+      className: "bg-green-600 hover:bg-green-700",
+      onClick: (row: any) => toggleVerify(row.id, !row.verified),
+    },
+  ];
 
   return (
     <div className="p-6 text-gray-800">
@@ -107,18 +147,16 @@ export default function OwnersPage() {
       <div className="flex flex-col sm:flex-row justify-between sm:items-center mb-6 gap-4">
         <h1 className="text-3xl font-bold">Owners</h1>
 
-        <div className="flex gap-3 items-center">
-          {/* Search */}
-          <div className="flex items-center bg-white border shadow-sm rounded-md px-3 py-2 w-72">
-            <Search size={18} className="text-gray-500" />
-            <input
-              type="text"
-              placeholder="Search owners (name, email, business)..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="ml-2 outline-none w-full bg-transparent text-sm"
-            />
-          </div>
+        {/* SEARCH BAR */}
+        <div className="flex items-center bg-white border shadow-sm rounded-md px-3 py-2 w-72">
+          <Search size={18} className="text-gray-500" />
+          <input
+            type="text"
+            placeholder="Search owners..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="ml-2 outline-none w-full bg-transparent text-sm"
+          />
         </div>
       </div>
 
@@ -152,68 +190,13 @@ export default function OwnersPage() {
         </button>
       </div>
 
-      {/* OWNERS TABLE */}
-      <div className="overflow-x-auto bg-white rounded-lg shadow">
-        <table className="w-full border-collapse text-sm border border-gray-300">
-          <thead>
-            <tr className="bg-gray-100">
-              <th className="p-3 border border-gray-300 text-left font-semibold">Owner Name</th>
-              <th className="p-3 border border-gray-300 text-left font-semibold">Email</th>
-              <th className="p-3 border border-gray-300 text-left font-semibold">Business</th>
-              <th className="p-3 border border-gray-300 text-left font-semibold">Verified</th>
-              <th className="p-3 border border-gray-300 text-center font-semibold">Actions</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {filteredOwners.map((o) => (
-              <tr key={o.id} className="hover:bg-gray-50">
-                <td className="p-3 border border-gray-300">{o.user?.name ?? "-"}</td>
-
-                <td className="p-3 border border-gray-300">{o.user?.email ?? "-"}</td>
-
-                <td className="p-3 border border-gray-300">{o.businessName ?? "-"}</td>
-
-                <td className="p-3 border border-gray-300">
-                  {o.verified ? (
-                    <span className="text-green-600 font-semibold">Verified</span>
-                  ) : (
-                    <span className="text-red-600 font-semibold">Not Verified</span>
-                  )}
-                </td>
-
-                <td className="p-3 border border-gray-300 text-center">
-                  <div className="flex justify-center gap-2">
-                    <button
-                      onClick={() => (window.location.href = `/panel/owners/${o.id}`)}
-                      className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-md"
-                    >
-                      View Profile
-                    </button>
-
-                    <button
-                      onClick={() => toggleVerify(o.id, !o.verified)}
-                      className={`px-3 py-1 rounded-md text-white ${
-                        o.verified ? "bg-red-600 hover:bg-red-700" : "bg-green-600 hover:bg-green-700"
-                      }`}
-                    >
-                      {o.verified ? "Unverify" : "Verify"}
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-
-            {filteredOwners.length === 0 && (
-              <tr>
-                <td colSpan={5} className="text-center p-6 text-gray-500 border border-gray-300">
-                  No owners found
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+      {/* 🔥 DYNAMIC TABLE */}
+      <DynamicTable
+        data={tableData}
+        columns={columns}
+        actions={actions}
+        perPage={10}
+      />
     </div>
   );
 }

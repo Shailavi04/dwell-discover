@@ -19,19 +19,18 @@ public class JwtUtil {
         return Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
     }
 
-    // ✅ Generate token with claims (role, permissions, etc.)
+    // Generate token with claims (role, permissions, userId, etc.)
     public String generateToken(Map<String, Object> claims, String username) {
         return Jwts.builder()
                 .setClaims(claims)
                 .setSubject(username)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60*24*7))
+                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24 * 7))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
 
-
-    // 👇 MUST BE PUBLIC so filter can access it
+    // Extract all claims
     public Claims extractAllClaims(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(getSigningKey())
@@ -40,7 +39,18 @@ public class JwtUtil {
                 .getBody();
     }
 
+    // Extract username
     public String extractUsername(String token) {
         return extractAllClaims(token).getSubject();
+    }
+
+    // ⭐ Extract userId from token
+    public String extractUserId(String token) {
+        return extractAllClaims(token).get("userId", String.class);
+    }
+
+    // ⭐ Optional: extract role
+    public String extractRole(String token) {
+        return extractAllClaims(token).get("role", String.class);
     }
 }

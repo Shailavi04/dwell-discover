@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Footer from '../../MyComponents/Footer';
@@ -13,35 +13,48 @@ const Login = () => {
 
   const router = useRouter();
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     setError('');
-
-    const storedEmail = localStorage.getItem('registeredEmail');
-    const storedPassword = localStorage.getItem('registeredPassword');
-
-    if (!storedEmail || !storedPassword) {
-      setError('No user is registered. Please sign up first!');
-      return;
-    }
-
-    if (email !== storedEmail) {
-      setError('Email is not registered!');
-      return;
-    }
-
-    if (password !== storedPassword) {
-      setError('Incorrect password!');
-      return;
-    }
-
     setIsLoading(true);
-    setTimeout(() => {
-      alert('Login successful!');
-      setIsLoading(false);
-      router.push('/preferences');
-    }, 1500);
-  };
 
+    try {
+      const res = await fetch("http://localhost:9092/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || "Invalid email or password!");
+        setIsLoading(false);
+        return;
+      }
+
+      // ✔ match backend response structure
+      if (data.role !== "STUDENT") {
+        setError("Only students can log in from this page!");
+        setIsLoading(false);
+        return;
+      }
+
+      // ✔ save only what backend sends
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("email", data.email);
+      localStorage.setItem("role", data.role);
+      localStorage.setItem("userName", data.name); 
+
+      alert("Login successful!");
+      router.push("/");
+
+    } catch (err) {
+      console.error(err);
+      setError("Something went wrong. Try again later.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
   return (
     <div
       className="min-h-screen flex flex-col bg-cover bg-center"
@@ -106,9 +119,8 @@ const Login = () => {
             {/* Submit Button */}
             <button
               type="submit"
-              className={`w-full mt-2 py-3 rounded-md ${
-                isLoading ? 'bg-gray-400' : 'bg-green-500 hover:bg-[rgba(0,0,0,0.3)]'
-              } text-white font-semibold`}
+              className={`w-full mt-2 py-3 rounded-md ${isLoading ? 'bg-gray-400' : 'bg-green-500 hover:bg-[rgba(0,0,0,0.3)]'
+                } text-white font-semibold`}
               disabled={isLoading}
             >
               {isLoading ? 'Logging In...' : 'Login'}
@@ -117,7 +129,6 @@ const Login = () => {
         </div>
       </div>
 
-      {/* Footer */}
       <Footer />
     </div>
   );

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Search } from "lucide-react";
+import DynamicTable from "../components/DynamicTable";
 
 type User = {
   id: string;
@@ -26,7 +27,7 @@ export default function UsersPage() {
   const fetchUsers = async () => {
     try {
       const res = await fetch(
-        `http://localhost:9092/api/users?search=${search}&page=${page}&size=20`,
+        `http://localhost:9092/api/users?search=${search}&page=${page}&size=50`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
@@ -75,6 +76,56 @@ export default function UsersPage() {
     );
   }
 
+  // -------------------------------
+  // 🔥 DYNAMIC TABLE CONFIGURATION
+  // -------------------------------
+
+  const processed = users.map((u) => ({
+    ...u,
+    roleName: u.role?.name,
+
+    createdText: u.createdAt
+      ? new Date(u.createdAt).toLocaleString()
+      : "-",
+
+    loginText: u.lastLoginAt
+      ? new Date(u.lastLoginAt).toLocaleString()
+      : "-",
+
+    statusBadge: u.blocked ? (
+      <span className="px-2 py-1 rounded text-xs font-semibold bg-red-100 text-red-700">
+        Blocked
+      </span>
+    ) : (
+      <span className="px-2 py-1 rounded text-xs font-semibold bg-green-100 text-green-700">
+        Active
+      </span>
+    ),
+  }));
+
+  const columns = [
+    { key: "name", label: "Name", sortable: true },
+    { key: "email", label: "Email", sortable: true },
+    { key: "roleName", label: "Role" },
+    { key: "createdText", label: "Created At" },
+    { key: "loginText", label: "Last Login" },
+    { key: "statusBadge", label: "Status" },
+  ];
+
+  const actions = [
+    {
+      label: "Login Logs",
+      className: "bg-blue-600 hover:bg-blue-700",
+      onClick: (row: any) =>
+        (window.location.href = `/panel/users/${row.email}/logins`),
+    },
+    {
+      label: "Toggle",
+      className: "bg-red-600 hover:bg-red-700",
+      onClick: (row: any) => toggleBlock(row.id, !row.blocked),
+    },
+  ];
+
   return (
     <div className="p-6 text-gray-800">
       {/* HEADER */}
@@ -94,82 +145,13 @@ export default function UsersPage() {
         </div>
       </div>
 
-      {/* TABLE */}
-      <div className="overflow-x-auto bg-white rounded-lg shadow">
-        <table className="w-full border-collapse text-sm border border-gray-300">
-          <thead>
-            <tr className="bg-gray-100">
-              <th className="p-3 border border-gray-300 text-left font-semibold">Name</th>
-              <th className="p-3 border border-gray-300 text-left font-semibold">Email</th>
-              <th className="p-3 border border-gray-300 text-left font-semibold">Role</th>
-              <th className="p-3 border border-gray-300 font-semibold">Created At</th>
-              <th className="p-3 border border-gray-300 font-semibold">Last Login</th>
-              <th className="p-3 border border-gray-300 font-semibold">Status</th>
-              <th className="p-3 border border-gray-300 text-center font-semibold">Actions</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {users.map((u) => (
-              <tr key={u.id} className="hover:bg-gray-50">
-                <td className="p-3 border border-gray-300">{u.name}</td>
-                <td className="p-3 border border-gray-300">{u.email}</td>
-                <td className="p-3 border border-gray-300">{u.role?.name}</td>
-
-                <td className="p-3 border border-gray-300">
-                  {u.createdAt ? new Date(u.createdAt).toLocaleString() : "-"}
-                </td>
-
-                <td className="p-3 border border-gray-300">
-                  {u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleString() : "-"}
-                </td>
-
-                <td className="p-3 border border-gray-300">
-                  <span
-                    className={`px-2 py-1 rounded text-xs font-semibold ${
-                      u.blocked
-                        ? "bg-red-100 text-red-700"
-                        : "bg-green-100 text-green-700"
-                    }`}
-                  >
-                    {u.blocked ? "Blocked" : "Active"}
-                  </span>
-                </td>
-
-                <td className="p-3 border border-gray-300 text-center">
-                  <div className="flex justify-center gap-2">
-                    <button
-                      onClick={() =>
-                        (window.location.href = `/panel/users/${u.email}/logins`)
-                      }
-                      className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-md"
-                    >
-                      Login Logs
-                    </button>
-
-                    <button
-                      onClick={() => toggleBlock(u.id, !u.blocked)}
-                      className={`px-3 py-1 text-white rounded-md ${
-                        u.blocked ? "bg-green-600 hover:bg-green-700" : "bg-red-600 hover:bg-red-700"
-                      }`}
-                    >
-                      {u.blocked ? "Unblock" : "Block"}
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-
-            {users.length === 0 && (
-              <tr>
-                <td colSpan={7} className="text-center p-6 text-gray-500 border border-gray-300">
-                  No users found
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+      {/* 🔥 DYNAMIC TABLE */}
+      <DynamicTable
+        data={processed}
+        columns={columns}
+        actions={actions}
+        perPage={10}
+      />
     </div>
   );
 }

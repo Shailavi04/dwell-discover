@@ -2,6 +2,9 @@ package com.dwelldiscover.HostelServer.model;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+// Jackson annotations
+import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Document(collection = "properties")
 public class Property {
@@ -31,6 +34,12 @@ public class Property {
 
     public String getOwnerId() { return owneruserId; }
     public void setOwnerId(String ownerId) { this.owneruserId = ownerId; }
+
+    @JsonProperty("owneruserId")
+    public String getOwneruserId() { return owneruserId; }
+
+    @JsonProperty("owneruserId")
+    public void setOwneruserId(String owneruserId) { this.owneruserId = owneruserId; }
 
     public String getCity() { return city; }
     public void setCity(String city) { this.city = city; }

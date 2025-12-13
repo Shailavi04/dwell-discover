@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Link } from "lucide-react";
 
 export default function PanelLoginPage() {
   const [email, setEmail] = useState("");
@@ -52,6 +52,10 @@ export default function PanelLoginPage() {
 
       // ✅ Save token
       localStorage.setItem("token", data.token);
+      localStorage.setItem(
+        "userId",
+        data.user?.id || data.userId || data.id || ""
+      );
 
       alert("Login successful!");
 
@@ -134,10 +138,14 @@ export default function PanelLoginPage() {
 
       <p className="text-center text-sm text-gray-600 mt-6">
         Don’t have an account?{" "}
-        <a href="/auth/register" className="text-blue-700 font-semibold hover:underline">
-          Register
+        <a
+          href="/student-ui/owner-register"
+          className="text-blue-700 font-semibold hover:underline"
+        >
+          Register as Owner
         </a>
       </p>
+
     </div>
   );
 }

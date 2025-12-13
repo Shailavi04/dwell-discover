@@ -40,6 +40,14 @@ public class PropertyDTO {
     public String getOwnerId() { return owneruserId; }
     public void setOwnerId(String owneruserId) { this.owneruserId = owneruserId; }
 
+    public String getOwneruserId() {
+        return owneruserId;
+    }
+
+    public void setOwneruserId(String owneruserId) {
+        this.owneruserId = owneruserId;
+    }
+
     public String getOwnerName() { return ownerName; }
     public void setOwnerName(String ownerName) { this.ownerName = ownerName; }
 

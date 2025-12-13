@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Search } from "lucide-react";
+import DynamicTable from "../components/DynamicTable";
 
 interface Booking {
   id: string;
@@ -26,9 +27,7 @@ export default function AdminBookingsPage() {
       setLoading(true);
 
       const res = await fetch("http://localhost:9092/api/bookings", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       const data = await res.json();
@@ -44,23 +43,52 @@ export default function AdminBookingsPage() {
     fetchBookings();
   }, []);
 
-  // FILTER: search + booking status
+  // FILTER LOGIC
   const filtered = bookings.filter((b) => {
     const q = search.toLowerCase();
 
     const matchesSearch =
       b.userId.toLowerCase().includes(q) ||
       b.ownerId.toLowerCase().includes(q) ||
-      b.roomId.toLowerCase().includes(q);
+      b.roomId.toLowerCase().includes(q) ||
+      b.id.toLowerCase().includes(q);
 
     const matchesFilter =
-      filter === "all" ? true : b.status.toLowerCase() === filter;
+      filter === "all" ? true : b.status.toLowerCase() === filter.toLowerCase();
 
     return matchesSearch && matchesFilter;
   });
 
   if (loading)
     return <div className="p-6 text-gray-800">Loading bookings...</div>;
+
+  // -------------------------------------------------
+  // 🔥 DYNAMIC TABLE SETUP
+  // -------------------------------------------------
+
+  const tableData = filtered.map((b) => ({
+    ...b,
+
+    statusBadge:
+      b.status === "APPROVED" ? (
+        <span className="text-green-600 font-semibold">Approved</span>
+      ) : b.status === "PENDING" ? (
+        <span className="text-yellow-600 font-semibold">Pending</span>
+      ) : (
+        <span className="text-red-600 font-semibold">Rejected</span>
+      ),
+
+    amountFormatted: `₹${b.totalAmount}`,
+  }));
+
+  const columns = [
+    { key: "id", label: "Booking ID", sortable: true },
+    { key: "userId", label: "User" },
+    { key: "roomId", label: "Room" },
+    { key: "ownerId", label: "Owner" },
+    { key: "statusBadge", label: "Status" },
+    { key: "amountFormatted", label: "Amount" },
+  ];
 
   return (
     <div className="p-6 text-gray-800">
@@ -122,56 +150,12 @@ export default function AdminBookingsPage() {
         </button>
       </div>
 
-      {/* TABLE */}
-      <div className="overflow-x-auto bg-white rounded-lg shadow">
-        <table className="w-full text-sm border border-gray-300">
-          <thead>
-            <tr className="bg-gray-100">
-              <th className="p-3 border">Booking ID</th>
-              <th className="p-3 border">User</th>
-              <th className="p-3 border">Room</th>
-              <th className="p-3 border">Owner</th>
-              <th className="p-3 border">Status</th>
-              <th className="p-3 border">Amount</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {filtered.map((b) => (
-              <tr key={b.id} className="hover:bg-gray-50">
-                <td className="p-3 border">{b.id}</td>
-                <td className="p-3 border">{b.userId}</td>
-                <td className="p-3 border">{b.roomId}</td>
-                <td className="p-3 border">{b.ownerId}</td>
-
-                <td className="p-3 border font-semibold">
-                  {b.status === "APPROVED" && (
-                    <span className="text-green-600">Approved</span>
-                  )}
-                  {b.status === "PENDING" && (
-                    <span className="text-yellow-600">Pending</span>
-                  )}
-                  {b.status === "REJECTED" && (
-                    <span className="text-red-600">Rejected</span>
-                  )}
-                </td>
-
-                <td className="p-3 border text-green-700 font-semibold">
-                  ₹{b.totalAmount}
-                </td>
-              </tr>
-            ))}
-
-            {filtered.length === 0 && (
-              <tr>
-                <td colSpan={6} className="p-6 text-center text-gray-500">
-                  No bookings found
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+      {/* 🔥 DYNAMIC TABLE */}
+      <DynamicTable
+        data={tableData}
+        columns={columns}
+        perPage={10}
+      />
     </div>
   );
 }

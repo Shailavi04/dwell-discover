@@ -6,12 +6,7 @@ import Navbar from '../MyComponents/Navbar';
 import Footer from '../MyComponents/Footer';
 import LoginButton from '../MyComponents/LoginButton';
 import HiddenNav from '../MyComponents/HiddenNav';
-
-// app/explore/page.tsx
-import ExplorePage from '../MyComponents/ExplorePage'; 
-
-
-
+import DDCard from '../MyComponents/DDCard'; // ✅ import your reusable card
 
 const Explore = () => {
   const [filters, setFilters] = useState({
@@ -20,69 +15,63 @@ const Explore = () => {
     maxPrice: '',
   });
 
-  const [hostels, setHostels] = useState<any[]>([]); // State to hold hostels
+  const [hostels, setHostels] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
 
-  // Fetch all hostels from the backend API
   useEffect(() => {
-    const fetchHostels = async () => {
+    const fetchRooms = async () => {
       setLoading(true);
       try {
-        const response = await axios.get('http://localhost:5000/api/hostels');
+        const response = await axios.get("http://localhost:9092/api/rooms");
         setHostels(response.data);
       } catch (error) {
-        console.error('Error fetching hostels:', error);
+        console.error("Error fetching rooms:", error);
       }
       setLoading(false);
     };
 
-    fetchHostels();
+    fetchRooms();
   }, []);
 
-  // Handle filter change
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (e: any) => {
     const { name, value } = e.target;
     setFilters({ ...filters, [name]: value });
   };
 
-  // Handle apply filters
   const handleApplyFilters = () => {
-    console.log('Filters Applied:', filters);
+    console.log("Filters Applied:", filters);
   };
 
-  // Handle clear filters
   const handleClearFilters = () => {
-    setFilters({ gender: '', type: '', maxPrice: '' });
+    setFilters({ gender: "", type: "", maxPrice: "" });
   };
 
-  // Handle removing a hostel
   const handleRemoveHostel = async (id: string) => {
     try {
       await axios.delete(`http://localhost:5000/api/hostels/${id}`);
-      setHostels(hostels.filter(hostel => hostel._id !== id)); 
+      setHostels(hostels.filter((h) => h._id !== id));
     } catch (error) {
-      console.error('Error removing hostel:', error);
+      console.error("Error removing hostel:", error);
     }
   };
 
   return (
-<div
+    <div
       className="min-h-screen flex flex-col items-center justify-start bg-cover"
       style={{ backgroundImage: "url('/your-bg-image.jpeg')" }}
     >
-
-  {/* Rest of your content */}
-      {/* NAVBAR + LOGIN DESKTOP ROW */}
+      {/* NAVBAR */}
       <div className="flex justify-between items-center gap-270 mb-6 px-4 pt-4">
         <HiddenNav />
       </div>
 
-      <div className="min-h-screen flex bg-transparent gap-50 p-4 ">
-        {/* Filter Section */}
-        <div className="w-full md:w-1/6 bg-transparent rounded-lg shadow-lg p-6">
-          <h2 className="text-xl text-red-500 font-semibold mb-4 ">Filters</h2>
+      <div className="min-h-screen flex bg-transparent gap-50 p-4">
 
-          {/* Filter Inputs */}
+        {/* FILTERS */}
+        <div className="w-full md:w-1/6 bg-transparent rounded-lg shadow-lg p-6">
+          <h2 className="text-xl text-red-500 font-semibold mb-4">Filters</h2>
+
+          {/* Gender Filter */}
           <div className="mb-4">
             <label className="block font-medium mb-1 text-black">Gender</label>
             <select
@@ -98,7 +87,8 @@ const Explore = () => {
             </select>
           </div>
 
-          <div className=" text-black mb-4">
+          {/* Type Filter */}
+          <div className="text-black mb-4">
             <label className="block font-medium mb-1">Type</label>
             <select
               name="type"
@@ -112,6 +102,7 @@ const Explore = () => {
             </select>
           </div>
 
+          {/* Price Filter */}
           <div className="mb-4 text-black">
             <label className="block font-medium mb-1">Max Price (₹)</label>
             <input
@@ -124,6 +115,7 @@ const Explore = () => {
             />
           </div>
 
+          {/* Filter Buttons */}
           <div className="flex gap-2">
             <button
               onClick={handleApplyFilters}
@@ -131,6 +123,7 @@ const Explore = () => {
             >
               Apply
             </button>
+
             <button
               onClick={handleClearFilters}
               className="w-1/2 bg-gray-300 text-black py-2 rounded hover:bg-gray-400"
@@ -140,7 +133,7 @@ const Explore = () => {
           </div>
         </div>
 
-        {/* Listings Section */}
+        {/* LISTINGS */}
         <div className="w-full md:w-3/4 md:pl-6 mt-6 md:mt-0">
           <h1 className="text-2xl font-bold mb-4">Explore Listings</h1>
 
@@ -148,42 +141,33 @@ const Explore = () => {
             <p>Loading hostels...</p>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {hostels.map((hostel) => (
-                <div
-                  key={hostel._id}
-                  className="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition"
+
+              {hostels.map((room) => (
+                <DDCard
+                  key={room.id}
+                  image={
+                    room.images && room.images.length > 0
+                      ? `http://localhost:9092/api/files/${room.images[0]}`
+                      : "/placeholder.jpg"
+                  }
+                  title={room.name}
+                  subtitle={`Gender: ${room.genderType || "N/A"}`}
+                  description={`₹${room.pricePerMonth}/month`}
                 >
-                  {/* Hostel Info */}
-                  <img
-                    src={hostel.imageUrl}
-                    alt={hostel.name}
-                    className="w-full h-48 object-cover mb-4 rounded"
-                  />
-                  <h3 className="text-lg font-semibold">{hostel.name}</h3>
-                  <p className="text-gray-600">Location: {hostel.location}</p>
-                  <p className="text-gray-600">Gender: {hostel.gender}</p>
-                  <p className="text-gray-800 font-bold mt-2">₹{hostel.price}/month</p>
-                  <div className="mt-3 flex justify-between">
-                    <button className="px-4 py-2 bg-teal-600 text-white rounded hover:bg-teal-700">
-                      View Details
-                    </button>
-                    <button
-                      onClick={() => handleRemoveHostel(hostel._id)}
-                      className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-                    >
-                      Remove
-                    </button>
-                  </div>
-                </div>
+                  <button className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700">
+                    View Details
+                  </button>
+                </DDCard>
+
               ))}
+
             </div>
-          )}<ExplorePage />;
+          )}
         </div>
       </div>
-      
-      <Footer/>
+
+      <Footer />
     </div>
-    
   );
 };
 

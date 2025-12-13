@@ -14,6 +14,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.http.HttpMethod;
 
 @Configuration
 @EnableWebSecurity
@@ -50,8 +51,14 @@ public class SecurityConfig {
                         .requestMatchers("/api/analytics/**").hasAuthority("analytics")
                         .requestMatchers("/api/property-list/**").hasAuthority("properties")
                         .requestMatchers("/api/owners/**").hasAuthority("owners")
-                        .requestMatchers("/api/rooms/**").hasAuthority("rooms")
-                        .requestMatchers("/api/rooms/**").hasAuthority("bookings")
+// Public access for browsing rooms
+                                .requestMatchers(HttpMethod.GET, "/api/rooms/**").permitAll()
+
+// Admin/Owner actions still protected
+                                .requestMatchers(HttpMethod.POST, "/api/rooms/**").hasAuthority("rooms")
+                                .requestMatchers(HttpMethod.PUT, "/api/rooms/**").hasAuthority("rooms")
+                                .requestMatchers(HttpMethod.DELETE, "/api/rooms/**").hasAuthority("rooms")
+                        .requestMatchers("/api/bookings/**").hasAuthority("bookings")
                         .requestMatchers("/api/users/**").hasAuthority("users")
                         .anyRequest().authenticated()
                 )

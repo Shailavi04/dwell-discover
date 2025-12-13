@@ -40,12 +40,14 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 // Extract username
                 String username = jwtUtil.extractUsername(token);
                 Claims claims = jwtUtil.extractAllClaims(token);
+                String role = claims.get("role", String.class);
+                String userId = claims.get("userId", String.class);
+                Object permsObj = claims.get("permissions");
+                Object authObj = claims.get("authorities");
 
                 System.out.println("Token Claims = " + claims);
 
                 // ----------- FIX: extract BOTH permissions + authorities ----------
-                Object permsObj = claims.get("permissions");
-                Object authObj = claims.get("authorities");
 
                 List<String> permissions = new ArrayList<>();
 
@@ -56,6 +58,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 if (authObj instanceof List<?> list) {
                     list.forEach(item -> permissions.add(item.toString()));
                 }
+                if (role != null) permissions.add("ROLE_" + role);
+                if (userId != null) permissions.add("USERID_" + userId);
 
                 System.out.println("Final permissions passed to Spring = " + permissions);
 

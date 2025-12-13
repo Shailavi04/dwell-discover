@@ -11,6 +11,8 @@ import org.springframework.http.ResponseEntity;
 
 import java.util.List;
 import java.util.Map;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.Authentication;
 
 @RestController
 @RequestMapping("/api/property-list")
@@ -28,17 +30,27 @@ public class PropertyController {
     public List<PropertyDTO> getAllProperties(
             @RequestParam(required = false) String search
     ) {
-        List<Property> props = propertyService.searchProperties(search);
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+        // 1️⃣ Get logged-in email (JWT subject)
+        String email = auth.getName();
+
+        // 2️⃣ Load user from DB
+        var user = propertyService.getUserByEmail(email); // we’ll add this
+
+        List<Property> props;
+
+        // 3️⃣ ADMIN → all properties
+        if ("ADMIN".equals(user.getRole().getName())) {
+            props = propertyService.searchProperties(search);
+        }
+        // 4️⃣ OWNER → only his properties
+        else {
+            props = propertyRepository.findByOwneruserId(user.getId());
+        }
+
         return propertyService.getAllWithOwners(props);
     }
-
-    // GET VERIFIED ONLY
-    @GetMapping("/verified")
-    public List<PropertyDTO> getVerifiedProperties() {
-        List<Property> props = propertyRepository.findByVerified(true);
-        return propertyService.getAllWithOwners(props);
-    }
-
     // GET UNVERIFIED ONLY
     @GetMapping("/unverified")
     public List<PropertyDTO> getUnverifiedProperties() {

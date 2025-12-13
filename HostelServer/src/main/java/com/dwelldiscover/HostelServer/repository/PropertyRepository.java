@@ -20,6 +20,6 @@ public interface PropertyRepository extends MongoRepository<Property, String> {
     );
 
     // SAME METHOD NAMES
-    List<Property> findByOwnerId(String ownerId);
+    List<Property> findByOwneruserId(String owneruserId);
     List<Property> findByVerified(boolean verified);
 }
