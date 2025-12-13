@@ -45,19 +45,15 @@ public class SecurityConfig {
 
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers("/api/public/**").permitAll()
+                        .requestMatchers("/api/images/**").permitAll()
 
                         // 🔥 Protect using permissions from JWT
                         .requestMatchers("/api/roles/**").hasAuthority("roles")
                         .requestMatchers("/api/analytics/**").hasAuthority("analytics")
                         .requestMatchers("/api/property-list/**").hasAuthority("properties")
                         .requestMatchers("/api/owners/**").hasAuthority("owners")
-// Public access for browsing rooms
-                                .requestMatchers(HttpMethod.GET, "/api/rooms/**").permitAll()
-
-// Admin/Owner actions still protected
-                                .requestMatchers(HttpMethod.POST, "/api/rooms/**").hasAuthority("rooms")
-                                .requestMatchers(HttpMethod.PUT, "/api/rooms/**").hasAuthority("rooms")
-                                .requestMatchers(HttpMethod.DELETE, "/api/rooms/**").hasAuthority("rooms")
+                        .requestMatchers("/api/rooms/**").hasAuthority("rooms")
                         .requestMatchers("/api/bookings/**").hasAuthority("bookings")
                         .requestMatchers("/api/users/**").hasAuthority("users")
                         .anyRequest().authenticated()

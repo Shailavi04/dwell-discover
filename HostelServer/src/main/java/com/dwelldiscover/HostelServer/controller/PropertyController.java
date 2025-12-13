@@ -80,6 +80,19 @@ public class PropertyController {
     // VERIFY / UNVERIFY
     @PutMapping("/{id}/verify")
     public ResponseEntity<?> verifyProperty(@PathVariable String id) {
+
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String email = auth.getName();
+
+        var user = propertyService.getUserByEmail(email);
+
+        // ❌ BLOCK OWNER
+        if (!"ADMIN".equals(user.getRole().getName())) {
+            return ResponseEntity
+                    .status(403)
+                    .body(Map.of("error", "Only admin can verify properties"));
+        }
+
         return propertyRepository.findById(id).map(property -> {
             property.setVerified(!property.isVerified());
             propertyRepository.save(property);

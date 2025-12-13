@@ -1,51 +1,49 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import ProtectedRoute from "@/app/panel/components/ProtectedRoute";
 import { Search } from "lucide-react";
 import DynamicTable from "../components/DynamicTable";
+import AddRoomModal from "./AddRoomModal";
+import EditRoomModal from "./EditRoomModal";
 
-interface Room {
+type Room = {
   id: string;
   name: string;
   type: string;
-  description: string;
-
   capacity: number;
   pricePerMonth: number;
-  pricePerDay: number;
-
-  propertyName: string;
   city: string;
-  address: string;
-  contact: string;
-
+  propertyName: string;
   ownerName: string;
-  ownerEmail: string;
-
   verified: boolean;
-}
+};
 
-function RoomsContent() {
+export default function RoomsPage() {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"all" | "verified" | "unverified">("all");
 
-  const token =
-    typeof window !== "undefined" ? localStorage.getItem("token") : "";
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedRoom, setSelectedRoom] = useState<any>(null);
 
+  const token = localStorage.getItem("token");
+  const role = localStorage.getItem("role");
+
+  // ---------------------------------------------
+  // FETCH ROOMS
+  // ---------------------------------------------
   const fetchRooms = async () => {
     try {
       setLoading(true);
 
       let url = "http://localhost:9092/api/rooms";
-      if (filter === "verified") url = "http://localhost:9092/api/rooms/verified";
-      if (filter === "unverified") url = "http://localhost:9092/api/rooms/unverified";
+      if (filter === "verified") url += "/verified";
+      if (filter === "unverified") url += "/unverified";
 
       const res = await fetch(url, {
         headers: {
-          "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
       });
@@ -53,7 +51,7 @@ function RoomsContent() {
       const data = await res.json();
       setRooms(data ?? []);
     } catch (e) {
-      console.error("Fetch error:", e);
+      console.error("Fetch rooms error:", e);
     } finally {
       setLoading(false);
     }
@@ -63,28 +61,31 @@ function RoomsContent() {
     fetchRooms();
   }, [filter]);
 
-  // Fix: update only the changed room
-  const toggleVerify = async (id: string, status: boolean) => {
-    const res = await fetch(`http://localhost:9092/api/rooms/${id}/verify`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
+  // ---------------------------------------------
+  // ADMIN ONLY: TOGGLE VERIFY
+  // ---------------------------------------------
+  const toggleVerify = async (id: string) => {
+    const res = await fetch(
+      `http://localhost:9092/api/rooms/${id}/verify`,
+      {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       }
-    });
+    );
 
     if (!res.ok) {
-      alert("Failed to update verification status");
+      alert("Failed to update room verification");
       return;
     }
 
-    const updatedRoom = await res.json();
-
-    setRooms((prev) =>
-      prev.map((r) => (r.id === id ? updatedRoom : r))
-    );
+    fetchRooms();
   };
 
+  // ---------------------------------------------
+  // SEARCH FILTER
+  // ---------------------------------------------
   const filtered = rooms.filter((r) => {
     const q = search.toLowerCase();
     return (
@@ -94,53 +95,71 @@ function RoomsContent() {
     );
   });
 
-  if (loading)
-    return <div className="p-6 text-gray-800">Loading rooms...</div>;
+  // ---------------------------------------------
+  // TABLE CONFIG
+  // ---------------------------------------------
+  const columns = [
+    { key: "name", label: "Room", sortable: true },
+    { key: "propertyName", label: "Property", sortable: true },
+    { key: "ownerName", label: "Owner", sortable: true },
+    { key: "city", label: "City", sortable: true },
+    { key: "capacity", label: "Capacity" },
+    { key: "pricePerMonth", label: "Price / Month" },
+    { key: "verified", label: "Verified", sortable: true },
+  ];
 
-  // ---------------------------------------
-  // 🔥 DYNAMIC TABLE SETUP
-  // ---------------------------------------
-
-  const tableData = filtered.map((r) => ({
+  const processedData = filtered.map((r) => ({
     ...r,
-
-    roomName: r.name,
-    property: r.propertyName,
-    owner: r.ownerName,
-    typeLabel: r.type,
-    capacityNum: r.capacity,
-    monthlyPrice: `₹${r.pricePerMonth}`,
-    verifiedBadge: r.verified ? (
-      <span className="text-green-600 font-semibold">Verified</span>
-    ) : (
-      <span className="text-red-600 font-semibold">Not Verified</span>
-    ),
+    pricePerMonth: `₹${r.pricePerMonth}`,
+    verified: r.verified ? "Verified" : "Not Verified",
   }));
 
-  const columns = [
-    { key: "roomName", label: "Room", sortable: true },
-    { key: "property", label: "Property", sortable: true },
-    { key: "owner", label: "Owner" },
-    { key: "typeLabel", label: "Type" },
-    { key: "capacityNum", label: "Capacity" },
-    { key: "monthlyPrice", label: "Price/Month" },
-    { key: "city", label: "City" },
-    { key: "verifiedBadge", label: "Verified" },
-  ];
+  // ---------------------------------------------
+  // ROLE BASED ACTIONS
+  // ---------------------------------------------
+  const actions =
+    role === "ADMIN"
+      ? [
+          {
+            label: "View",
+            className: "bg-blue-600",
+            onClick: (row: any) =>
+              (window.location.href = `/panel/rooms/${row.id}`),
+          },
+          {
+            label: "Toggle Verify",
+            className: "bg-green-600",
+            onClick: (row: any) => toggleVerify(row.id),
+          },
+        ]
+      : [
+          {
+            label: "View",
+            className: "bg-blue-600",
+            onClick: (row: any) =>
+              (window.location.href = `/panel/rooms/${row.id}`),
+          },
+          {
+            label: "Edit",
+            className: "bg-yellow-500 hover:bg-yellow-600",
+            onClick: async (row: any) => {
+              const res = await fetch(
+                `http://localhost:9092/api/rooms/${row.id}`,
+                {
+                  headers: {
+                    Authorization: `Bearer ${token}`,
+                  },
+                }
+              );
+              const fullRoom = await res.json();
+              setSelectedRoom(fullRoom);
+              setShowEditModal(true);
+            },
+          },
+        ];
 
-  const actions = [
-    {
-      label: "View",
-      className: "bg-blue-600 hover:bg-blue-700",
-      onClick: (row: any) =>
-        (window.location.href = `/panel/rooms/${row.id}`),
-    },
-    {
-      label: "Toggle Verify",
-      className: "bg-green-600 hover:bg-green-700",
-      onClick: (row: any) => toggleVerify(row.id, !row.verified),
-    },
-  ];
+  if (loading)
+    return <div className="p-6 text-gray-800">Loading rooms...</div>;
 
   return (
     <div className="p-6 text-gray-800">
@@ -148,8 +167,8 @@ function RoomsContent() {
       <div className="flex flex-col sm:flex-row justify-between mb-6">
         <h1 className="text-3xl font-bold">Rooms</h1>
 
-        <div className="flex gap-3">
-          <div className="flex items-center bg-white border shadow-sm rounded-md px-3 py-2 w-72">
+        <div className="flex gap-3 items-center">
+          <div className="flex items-center bg-white border rounded px-3 py-2 w-72">
             <Search size={18} className="text-gray-500" />
             <input
               type="text"
@@ -159,54 +178,67 @@ function RoomsContent() {
               className="ml-2 outline-none w-full bg-transparent"
             />
           </div>
+
+          {role === "OWNER" && (
+            <button
+              onClick={() => setShowAddModal(true)}
+              className="px-4 py-2 bg-blue-600 text-white rounded"
+            >
+              + Add Room
+            </button>
+          )}
         </div>
       </div>
 
-      {/* FILTER BUTTONS */}
+      {/* FILTERS */}
       <div className="flex gap-3 mb-4">
-        <button
-          onClick={() => setFilter("all")}
-          className={`px-4 py-2 rounded-md border ${
-            filter === "all" ? "bg-blue-600 text-white" : "bg-white"
-          }`}
-        >
-          All
-        </button>
-
-        <button
-          onClick={() => setFilter("verified")}
-          className={`px-4 py-2 rounded-md border ${
-            filter === "verified" ? "bg-green-600 text-white" : "bg-white"
-          }`}
-        >
-          Verified
-        </button>
-
-        <button
-          onClick={() => setFilter("unverified")}
-          className={`px-4 py-2 rounded-md border ${
-            filter === "unverified" ? "bg-red-600 text-white" : "bg-white"
-          }`}
-        >
-          Unverified
-        </button>
+        {["all", "verified", "unverified"].map((f) => (
+          <button
+            key={f}
+            onClick={() => setFilter(f as any)}
+            className={`px-4 py-2 border rounded ${
+              filter === f ? "bg-blue-600 text-white" : "bg-white"
+            }`}
+          >
+            {f.toUpperCase()}
+          </button>
+        ))}
       </div>
 
-      {/* 🔥 DYNAMIC TABLE */}
+      {/* TABLE */}
       <DynamicTable
-        data={tableData}
+        data={processedData}
         columns={columns}
         actions={actions}
         perPage={10}
       />
-    </div>
-  );
-}
 
-export default function RoomsPage() {
-  return (
-    <ProtectedRoute allowedPermissions={["rooms"]}>
-      <RoomsContent />
-    </ProtectedRoute>
+      {/* ADD ROOM */}
+      {showAddModal && (
+        <AddRoomModal
+          onClose={() => setShowAddModal(false)}
+          onRoomAdded={() => {
+            setShowAddModal(false);
+            fetchRooms();
+          }}
+        />
+      )}
+
+      {/* EDIT ROOM */}
+      {showEditModal && selectedRoom && (
+        <EditRoomModal
+          room={selectedRoom}
+          onClose={() => {
+            setShowEditModal(false);
+            setSelectedRoom(null);
+          }}
+          onSuccess={() => {
+            setShowEditModal(false);
+            setSelectedRoom(null);
+            fetchRooms();
+          }}
+        />
+      )}
+    </div>
   );
 }

@@ -61,7 +61,7 @@ export default function PanelLoginPage() {
 
       // Redirect based on role
       if (data.role === "ADMIN") router.push("/panel/rooms");
-      else if (data.role === "OWNER") router.push("/panel/owners");
+      else if (data.role === "OWNER") router.push("/panel/properties");
       else router.push("/panel");
     } catch (err) {
       console.error(err);

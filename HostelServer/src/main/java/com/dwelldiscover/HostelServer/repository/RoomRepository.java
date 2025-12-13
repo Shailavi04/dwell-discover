@@ -21,4 +21,8 @@ public interface RoomRepository extends MongoRepository<Room, String> {
 
     // FIXED METHOD NAME (WORKS WITH YOUR MODEL)
     long countByReported(boolean reported);
+
+    List<Room> findByPropertyIdIn(List<String> propertyIds);
+
+    List<Room> findByVerifiedTrueAndIsAvailableTrue();
 }

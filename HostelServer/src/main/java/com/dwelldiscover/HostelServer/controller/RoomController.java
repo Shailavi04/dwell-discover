@@ -4,8 +4,10 @@ import com.dwelldiscover.HostelServer.dto.RoomResponseDTO;
 import com.dwelldiscover.HostelServer.model.Room;
 import com.dwelldiscover.HostelServer.service.RoomService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Optional;
@@ -18,52 +20,61 @@ public class RoomController {
     @Autowired
     private RoomService roomService;
 
-    // Get all rooms
+    // ============================
+    // GET ALL ROOMS
+    // ============================
     @GetMapping
     public List<RoomResponseDTO> getAllRooms() {
-        return roomService.getAllRooms();
+        return roomService.getAllRoomsBasedOnRole();
     }
 
-    // Get single room
+    // ============================
+    // GET SINGLE ROOM
+    // ============================
     @GetMapping("/{id}")
     public Optional<Room> getRoomById(@PathVariable String id) {
         return roomService.getRoomById(id);
     }
 
-    // Filter - verified
-    @GetMapping("/verified")
-    @PreAuthorize("hasAuthority('rooms')")
-    public List<RoomResponseDTO> getVerifiedRooms() {
-        return roomService.getRoomsByVerification(true);
+    // ============================
+    // ADD ROOM (WITH IMAGES)
+    // ============================
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public Room addRoom(
+            @RequestPart("data") Room room,
+            @RequestPart(value = "images", required = false) MultipartFile[] images
+    ) {
+        return roomService.addRoom(room, images);
     }
 
-    // Filter - unverified
-    @GetMapping("/unverified")
-    @PreAuthorize("hasAuthority('rooms')")
-    public List<RoomResponseDTO> getUnverifiedRooms() {
-        return roomService.getRoomsByVerification(false);
+    // ============================
+    // UPDATE ROOM (WITH IMAGES)
+    // ============================
+    @PutMapping(
+            value = "/{id}",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
+    public ResponseEntity<?> updateRoom(
+            @PathVariable String id,
+            @RequestPart("data") Room room,
+            @RequestPart(value = "newImages", required = false) MultipartFile[] newImages
+    ) {
+        return ResponseEntity.ok(
+                roomService.updateRoom(id, room, newImages)
+        );
     }
 
-    // Verify / Unverify Room
+    // ============================
+    // VERIFY / UNVERIFY (ADMIN)
+    // ============================
     @PutMapping("/{id}/verify")
-    @PreAuthorize("hasAuthority('rooms')")
-    public RoomResponseDTO toggleVerify(@PathVariable String id) {
-        return roomService.toggleVerify(id);
+    public ResponseEntity<?> toggleVerify(@PathVariable String id) {
+        return ResponseEntity.ok(roomService.toggleVerify(id));
     }
 
-    // Add room
-    @PostMapping
-    public Room addRoom(@RequestBody Room room) {
-        return roomService.addRoom(room);
-    }
-
-    // Update room
-    @PutMapping("/{id}")
-    public Room updateRoom(@PathVariable String id, @RequestBody Room roomDetails) {
-        return roomService.updateRoom(id, roomDetails);
-    }
-
-    // Delete room
+    // ============================
+    // DELETE ROOM
+    // ============================
     @DeleteMapping("/{id}")
     public void deleteRoom(@PathVariable String id) {
         roomService.deleteRoom(id);

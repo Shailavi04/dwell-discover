@@ -1,129 +1,178 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
-interface Room {
-  id: string;
-  name: string;
-  type: string;
-  city: string;
-  address: string;
-  contact: string;
-  description: string;
-}
-
-interface EditRoomModalProps {
-  room?: Room | null; 
+interface Props {
+  room: any;
   onClose: () => void;
-  onRoomUpdated: (room: Room) => void;
+  onSuccess: () => void;
 }
 
-export default function EditRoomModal({ room, onClose, onRoomUpdated }: EditRoomModalProps) {
-  // State with safe defaults
+export default function EditRoomModal({ room, onClose, onSuccess }: Props) {
   const [form, setForm] = useState({
-    name: "",
-    type: "",
-    city: "",
-    address: "",
-    contact: "",
-    description: "",
+    name: room.name ?? "",
+    roomNumber: room.roomNumber ?? "",
+    type: room.type ?? "",
+    capacity: room.capacity ?? 0,
+    pricePerMonth: room.pricePerMonth ?? 0,
+    description: room.description ?? "",
   });
 
-  // Load room data safely
-  useEffect(() => {
-    if (room) {
-      setForm({
-        name: room.name || "",
-        type: room.type || "",
-        city: room.city || "",
-        address: room.address || "",
-        contact: room.contact || "",
-        description: room.description || "",
-      });
-    }
-  }, [room]);
+  const [newImages, setNewImages] = useState<File[]>([]);
+  const [existingImages] = useState<string[]>(room.images ?? []);
 
-  // If no room is selected, don't render modal
-  if (!room) return null;
+  const token = localStorage.getItem("token");
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
+  const handleChange = (e: any) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleImageChange = (e: any) => {
+    setNewImages(Array.from(e.target.files));
+  };
 
-    try {
-      const token = localStorage.getItem("token");
+  const handleSubmit = async () => {
+    const formData = new FormData();
 
-      const res = await fetch(`http://localhost:9092/api/rooms/${room.id}`, {
+    formData.append(
+      "data",
+      new Blob([JSON.stringify(form)], { type: "application/json" })
+    );
+
+    newImages.forEach((file) => {
+      formData.append("newImages", file);
+    });
+
+    const res = await fetch(
+      `http://localhost:9092/api/rooms/${room.id}`,
+      {
         method: "PUT",
         headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`, // 🔥 IMPORTANT
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(form),
-      });
-
-      if (!res.ok) {
-        alert("Failed to update room");
-        console.error(await res.text());
-        return;
+        body: formData,
       }
+    );
 
-      const updatedRoom = await res.json();
-      onRoomUpdated(updatedRoom);
-      onClose();
-    } catch (error) {
-      console.error("Update failed:", error);
+    if (!res.ok) {
+      alert("Failed to update room");
+      return;
     }
+
+    onSuccess();
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-      <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-        <h2 className="text-lg font-semibold mb-4">Edit Room</h2>
+    <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
+      <div className="bg-white rounded-lg w-[540px] p-6 shadow-xl">
+        <h2 className="text-2xl font-bold mb-5">Edit Room</h2>
 
-        <form onSubmit={handleSubmit} className="space-y-3">
-          {["name", "type", "city", "address", "contact"].map((field) => (
+        {/* ROOM NAME */}
+        <label className="block text-sm font-medium mb-1">Room Name</label>
+        <input
+          name="name"
+          value={form.name}
+          onChange={handleChange}
+          className="w-full border rounded px-3 py-2 mb-3"
+        />
+
+        {/* ROOM NUMBER */}
+        <label className="block text-sm font-medium mb-1">Room Number</label>
+        <input
+          name="roomNumber"
+          value={form.roomNumber}
+          onChange={handleChange}
+          className="w-full border rounded px-3 py-2 mb-3"
+        />
+
+        {/* TYPE */}
+        <label className="block text-sm font-medium mb-1">Room Type</label>
+        <input
+          name="type"
+          value={form.type}
+          onChange={handleChange}
+          className="w-full border rounded px-3 py-2 mb-3"
+        />
+
+        {/* CAPACITY & PRICE */}
+        <div className="grid grid-cols-2 gap-3 mb-3">
+          <div>
+            <label className="block text-sm font-medium mb-1">Capacity</label>
             <input
-              key={field}
-              name={field}
-              placeholder={field.toUpperCase()}
-              value={form[field as keyof typeof form]}
+              type="number"
+              name="capacity"
+              value={form.capacity}
               onChange={handleChange}
-              className="w-full border px-3 py-2 rounded"
-              required
+              className="w-full border rounded px-3 py-2"
             />
-          ))}
-
-          <textarea
-            name="description"
-            placeholder="DESCRIPTION"
-            value={form.description}
-            onChange={handleChange}
-            className="w-full border px-3 py-2 rounded"
-          />
-
-          <div className="flex justify-end gap-3">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 bg-gray-400 rounded text-white"
-            >
-              Cancel
-            </button>
-
-            <button
-              type="submit"
-              className="px-4 py-2 bg-green-500 rounded text-white"
-            >
-              Save
-            </button>
           </div>
-        </form>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">
+              Price / Month (₹)
+            </label>
+            <input
+              type="number"
+              name="pricePerMonth"
+              value={form.pricePerMonth}
+              onChange={handleChange}
+              className="w-full border rounded px-3 py-2"
+            />
+          </div>
+        </div>
+
+        {/* DESCRIPTION */}
+        <label className="block text-sm font-medium mb-1">Description</label>
+        <textarea
+          name="description"
+          value={form.description}
+          onChange={handleChange}
+          rows={3}
+          className="w-full border rounded px-3 py-2 mb-3"
+        />
+
+        {/* EXISTING IMAGES */}
+        {existingImages.length > 0 && (
+          <>
+            <label className="block text-sm font-medium mb-1">
+              Existing Images
+            </label>
+            <div className="flex gap-2 flex-wrap mb-3">
+              {existingImages.map((id) => (
+                <img
+                  key={id}
+                  src={`http://localhost:9092/api/images/${id}`}
+                  className="w-20 h-20 object-cover rounded border"
+                />
+              ))}
+            </div>
+          </>
+        )}
+
+        {/* ADD NEW IMAGES */}
+        <label className="block text-sm font-medium mb-1">
+          Add New Images
+        </label>
+        <input
+          type="file"
+          multiple
+          accept="image/*"
+          onChange={handleImageChange}
+          className="mb-4"
+        />
+
+        {/* ACTIONS */}
+        <div className="flex justify-end gap-3">
+          <button onClick={onClose} className="px-4 py-2 bg-gray-300 rounded">
+            Cancel
+          </button>
+          <button
+            onClick={handleSubmit}
+            className="px-4 py-2 bg-blue-600 text-white rounded"
+          >
+            Save Changes
+          </button>
+        </div>
       </div>
     </div>
   );
