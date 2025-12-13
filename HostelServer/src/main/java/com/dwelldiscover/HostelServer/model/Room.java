@@ -37,11 +37,11 @@ public class Room {
 
     private boolean isAvailable = true;
 
-    private List<String> images;
-    private List<String> roomAmenities;
-
     private String genderType;
     private String roomNumber;
+
+    private List<String> images;
+    private List<String> roomAmenities;
 
     private boolean isReported = false;
     private boolean verified = false;

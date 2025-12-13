@@ -16,6 +16,7 @@ export default function EditRoomModal({ room, onClose, onSuccess }: Props) {
     capacity: room.capacity ?? 0,
     pricePerMonth: room.pricePerMonth ?? 0,
     description: room.description ?? "",
+    genderType: room.genderType ?? "",
   });
 
   const [newImages, setNewImages] = useState<File[]>([]);
@@ -93,6 +94,20 @@ export default function EditRoomModal({ room, onClose, onSuccess }: Props) {
           onChange={handleChange}
           className="w-full border rounded px-3 py-2 mb-3"
         />
+        {/* GENDER TYPE */}
+        <label className="block text-sm font-medium mb-1">Gender</label>
+        <select
+          name="genderType"
+          value={form.genderType}
+          onChange={handleChange}
+          className="w-full border rounded px-3 py-2 mb-3"
+        >
+          <option value="">Select Gender</option>
+          <option value="BOYS">Boys</option>
+          <option value="GIRLS">Girls</option>
+          <option value="UNISEX">Unisex</option>
+        </select>
+
 
         {/* CAPACITY & PRICE */}
         <div className="grid grid-cols-2 gap-3 mb-3">

@@ -18,14 +18,19 @@ public class ImageController {
     private GridFSBucket gridFSBucket;
 
     @GetMapping("/{id}")
-    public void getImage(@PathVariable String id, HttpServletResponse response) throws IOException {
+    public void getImage(
+            @PathVariable String id,
+            HttpServletResponse response
+    ) throws IOException {
 
         GridFSDownloadStream stream =
                 gridFSBucket.openDownloadStream(new ObjectId(id));
 
-        response.setContentType("image/jpeg"); // works for png/webp too
+        // Browser-friendly headers
+        response.setContentType("image/jpeg");
         response.setHeader("Cache-Control", "public, max-age=31536000");
 
         stream.transferTo(response.getOutputStream());
+        response.flushBuffer();
     }
 }

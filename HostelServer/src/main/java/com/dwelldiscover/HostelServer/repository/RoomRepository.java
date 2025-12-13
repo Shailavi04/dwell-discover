@@ -23,6 +23,6 @@ public interface RoomRepository extends MongoRepository<Room, String> {
     long countByReported(boolean reported);
 
     List<Room> findByPropertyIdIn(List<String> propertyIds);
-
+    List<Room> findByIsAvailableTrue();
     List<Room> findByVerifiedTrueAndIsAvailableTrue();
 }

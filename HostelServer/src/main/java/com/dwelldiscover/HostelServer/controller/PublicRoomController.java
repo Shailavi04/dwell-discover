@@ -22,11 +22,12 @@ public class PublicRoomController {
     @GetMapping
     public List<RoomResponseDTO> getPublicRooms() {
         return roomRepository
-                .findByVerifiedTrueAndIsAvailableTrue()
+                .findByIsAvailableTrue()   // ✅ ONLY availability matters
                 .stream()
-                .map(roomService::toDTO)   // ✅ CORRECT
+                .map(roomService::toDTO)
                 .toList();
     }
+
 
     @GetMapping("/{id}")
     public RoomResponseDTO getRoom(@PathVariable String id) {

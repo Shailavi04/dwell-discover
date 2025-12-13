@@ -1,6 +1,7 @@
 package com.dwelldiscover.HostelServer.dto;
 
 import lombok.Data;
+import java.util.List;
 
 @Data
 public class RoomResponseDTO {
@@ -13,7 +14,7 @@ public class RoomResponseDTO {
     private int capacity;
     private double pricePerMonth;
     private double pricePerDay;
-    private boolean isAvailable;
+    private boolean available;
 
     // Property details
     private String propertyName;
@@ -25,7 +26,12 @@ public class RoomResponseDTO {
     private String ownerName;
     private String ownerEmail;
 
+    // Room status
     private boolean verified;
+
+    // 🔥 REQUIRED FOR EXPLORE PAGE
+    private List<String> images;
+    private String genderType;
 
     public RoomResponseDTO(
             String id,
@@ -35,14 +41,16 @@ public class RoomResponseDTO {
             int capacity,
             double pricePerMonth,
             double pricePerDay,
-            boolean isAvailable,
+            boolean available,
             String propertyName,
             String city,
             String address,
             String contact,
             String ownerName,
             String ownerEmail,
-            boolean verified
+            boolean verified,
+            List<String> images,
+            String genderType
     ) {
         this.id = id;
         this.name = name;
@@ -51,7 +59,7 @@ public class RoomResponseDTO {
         this.capacity = capacity;
         this.pricePerMonth = pricePerMonth;
         this.pricePerDay = pricePerDay;
-        this.isAvailable = isAvailable;
+        this.available = available;
 
         this.propertyName = propertyName;
         this.city = city;
@@ -62,5 +70,7 @@ public class RoomResponseDTO {
         this.ownerEmail = ownerEmail;
 
         this.verified = verified;
+        this.images = images;
+        this.genderType = genderType;
     }
 }

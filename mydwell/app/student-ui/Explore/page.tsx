@@ -22,7 +22,7 @@ const Explore = () => {
     const fetchRooms = async () => {
       setLoading(true);
       try {
-        const response = await axios.get("http://localhost:9092/api/rooms");
+        const response = await axios.get("http://localhost:9092/api/public/rooms");
         setHostels(response.data);
       } catch (error) {
         console.error("Error fetching rooms:", error);
@@ -147,20 +147,28 @@ const Explore = () => {
                   key={room.id}
                   image={
                     room.images && room.images.length > 0
-                      ? `http://localhost:9092/api/files/${room.images[0]}`
+                      ? `http://localhost:9092/api/images/${room.images[0]}`
                       : "/placeholder.jpg"
                   }
                   title={room.name}
                   subtitle={`Gender: ${room.genderType || "N/A"}`}
                   description={`₹${room.pricePerMonth}/month`}
                 >
+                  {/* VERIFIED STATUS BADGE */}
+                  <span
+                    className={`inline-block mb-2 px-2 py-1 text-xs font-semibold rounded ${room.verified
+                      ? "bg-green-100 text-green-700"
+                      : "bg-yellow-100 text-yellow-700"
+                      }`}
+                  >
+                    {room.verified ? "Verified" : "Not Verified"}
+                  </span>
+
                   <button className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700">
                     View Details
                   </button>
                 </DDCard>
-
               ))}
-
             </div>
           )}
         </div>

@@ -10,10 +10,12 @@ import com.dwelldiscover.HostelServer.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+
 import java.util.Date;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Optional;
+
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -32,36 +34,49 @@ public class RoomService {
     @Autowired
     private UserRepository userRepository;
 
-    // --------------------------
-    // DTO MAPPER
-    // --------------------------
+    // ==========================
+    // ✅ DTO MAPPER (FIXED)
+    // ==========================
     public RoomResponseDTO toDTO(Room room) {
 
-        Property property = propertyRepository.findById(room.getPropertyId()).orElse(null);
-        User owner = userRepository.findById(room.getOwneruserId()).orElse(null);
+        Property property = propertyRepository
+                .findById(room.getPropertyId())
+                .orElse(null);
+
+        User owner = userRepository
+                .findById(room.getOwneruserId())
+                .orElse(null);
 
         return new RoomResponseDTO(
                 room.getId(),
                 room.getName(),
                 room.getType(),
                 room.getDescription(),
+
                 room.getCapacity(),
                 room.getPricePerMonth(),
                 room.getPricePerDay(),
                 room.isAvailable(),
+
                 property != null ? property.getName() : "",
                 property != null ? property.getCity() : "",
                 property != null ? property.getAddress() : "",
                 property != null ? property.getContact() : "",
+
                 owner != null ? owner.getName() : "",
                 owner != null ? owner.getEmail() : "",
-                room.isVerified()
+
+                room.isVerified(),
+
+                // 🔥 REQUIRED FOR EXPLORE PAGE
+                room.getImages(),
+                room.getGenderType()
         );
     }
 
-    // --------------------------
+    // ==========================
     // ADD ROOM (WITH IMAGES)
-    // --------------------------
+    // ==========================
     public Room addRoom(Room room, MultipartFile[] images) {
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -92,9 +107,9 @@ public class RoomService {
         return roomRepository.save(room);
     }
 
-    // --------------------------
-    // ✅ UPDATE ROOM (FIXED)
-    // --------------------------
+    // ==========================
+    // UPDATE ROOM (WITH IMAGES)
+    // ==========================
     public Room updateRoom(String id, Room updatedData, MultipartFile[] newImages) {
 
         Room room = roomRepository.findById(id)
@@ -110,7 +125,6 @@ public class RoomService {
             throw new RuntimeException("Forbidden");
         }
 
-        // Update fields
         room.setName(updatedData.getName());
         room.setType(updatedData.getType());
         room.setDescription(updatedData.getDescription());
@@ -122,7 +136,6 @@ public class RoomService {
         room.setSecurityDeposit(updatedData.getSecurityDeposit());
         room.setUpdatedAt(new Date());
 
-        // Append new images
         if (newImages != null && newImages.length > 0) {
             List<String> images =
                     room.getImages() != null ? room.getImages() : new ArrayList<>();
@@ -136,9 +149,9 @@ public class RoomService {
         return roomRepository.save(room);
     }
 
-    // --------------------------
+    // ==========================
     // GET ROOMS BASED ON ROLE
-    // --------------------------
+    // ==========================
     public List<RoomResponseDTO> getAllRoomsBasedOnRole() {
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -162,9 +175,9 @@ public class RoomService {
         return rooms.stream().map(this::toDTO).toList();
     }
 
-    // --------------------------
-    // TOGGLE VERIFY
-    // --------------------------
+    // ==========================
+    // VERIFY / UNVERIFY
+    // ==========================
     public RoomResponseDTO toggleVerify(String id) {
         Room room = roomRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Room not found"));
@@ -178,7 +191,8 @@ public class RoomService {
     }
 
     public List<RoomResponseDTO> getRoomsByVerification(boolean verified) {
-        return roomRepository.findAll().stream()
+        return roomRepository.findAll()
+                .stream()
                 .filter(r -> r.isVerified() == verified)
                 .map(this::toDTO)
                 .toList();
