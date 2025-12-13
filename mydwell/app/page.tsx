@@ -124,7 +124,7 @@ export default function Home() {
 
             {/* Use your DDButton here */}
 
-            <Link href="/owner-auth/login">
+            <Link href="/student-ui/owner-register">
               <DDButton
                 text="List Your Property"
                 className="px-7 py-4 rounded-md drop-shadow-lg"

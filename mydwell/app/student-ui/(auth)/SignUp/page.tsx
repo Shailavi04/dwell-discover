@@ -4,9 +4,9 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Footer from "../../MyComponents/Footer";
 import HiddenNav from "../../MyComponents/HiddenNav";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, User } from "lucide-react";
 
-const OwnerRegister = () => {
+const UserRegister = () => {
   const router = useRouter();
 
   // Fields
@@ -118,7 +118,7 @@ const OwnerRegister = () => {
           name,
           email,
           password,
-          role: { id: 2 }, // OWNER
+          role: { id: 3 }, // student role
         }),
       });
 
@@ -130,10 +130,10 @@ const OwnerRegister = () => {
         return;
       }
 
-      alert("Owner registered successfully!");
-      router.push("/auth/login");
+      alert("Registeration successfully!");
+      router.push("/");
     } catch (err) {
-      alert("Error registering owner");
+      alert("Error in registering ");
     }
 
     setLoading(false);
@@ -154,8 +154,6 @@ const OwnerRegister = () => {
         <div className="bg-[rgba(0,0,0,0.3)] p-8 rounded-lg shadow-md w-full max-w-md lg:absolute lg:right-40 lg:top-1/2 lg:-translate-y-1/2 mb-20">
 
           <h2 className="text-4xl font-bold text-center text-teal-500 mb-2">Dwell Discover</h2>
-          <h2 className="text-2xl font-bold text-center text-teal-950 mb-6">Owner Registration</h2>
-
           {/* FORM */}
           <form
             onSubmit={(e) => {
@@ -263,7 +261,7 @@ const OwnerRegister = () => {
               }`}
               disabled={loading}
             >
-              {loading ? "Registering..." : "Register as Owner"}
+              {loading ? "Registering..." : "Register"}
             </button>
           </form>
         </div>
@@ -274,4 +272,4 @@ const OwnerRegister = () => {
   );
 };
 
-export default OwnerRegister;
+export default UserRegister;

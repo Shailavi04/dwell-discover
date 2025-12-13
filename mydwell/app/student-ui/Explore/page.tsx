@@ -54,47 +54,51 @@ const Explore = () => {
       console.error("Error removing hostel:", error);
     }
   };
+return (
+  <div
+    className="min-h-screen bg-cover bg-center"
+    style={{ backgroundImage: "url('/your-bg-image.jpeg')" }}
+  >
+    {/* DARK OVERLAY */}
+    <div className="min-h-screen bg-black/40">
 
-  return (
-    <div
-      className="min-h-screen flex flex-col items-center justify-start bg-cover"
-      style={{ backgroundImage: "url('/your-bg-image.jpeg')" }}
-    >
       {/* NAVBAR */}
-      <div className="flex justify-between items-center gap-270 mb-6 px-4 pt-4">
+      <div className="px-6 pt-4 flex justify-between items-center">
         <HiddenNav />
+        <LoginButton />
       </div>
 
-      <div className="min-h-screen flex bg-transparent gap-50 p-4">
+      {/* CONTENT */}
+      <div className="max-w-7xl mx-auto px-6 py-10 flex gap-8">
 
         {/* FILTERS */}
-        <div className="w-full md:w-1/6 bg-transparent rounded-lg shadow-lg p-6">
-          <h2 className="text-xl text-red-500 font-semibold mb-4">Filters</h2>
+        <div className="w-72 bg-white/90 backdrop-blur rounded-xl shadow-lg p-5 h-fit">
+          <h2 className="text-lg font-semibold mb-4">Filters</h2>
 
-          {/* Gender Filter */}
+          {/* Gender */}
           <div className="mb-4">
-            <label className="block font-medium mb-1 text-black">Gender</label>
+            <label className="text-sm font-medium">Gender</label>
             <select
               name="gender"
               value={filters.gender}
               onChange={handleChange}
-              className="w-full p-2 border rounded text-black"
+              className="w-full mt-1 border rounded px-3 py-2"
             >
               <option value="">Any</option>
-              <option value="Boys">Boys</option>
-              <option value="Girls">Girls</option>
-              <option value="Co-ed">Co-ed</option>
+              <option value="BOYS">Boys</option>
+              <option value="GIRLS">Girls</option>
+              <option value="UNISEX">Unisex</option>
             </select>
           </div>
 
-          {/* Type Filter */}
-          <div className="text-black mb-4">
-            <label className="block font-medium mb-1">Type</label>
+          {/* Type */}
+          <div className="mb-4">
+            <label className="text-sm font-medium">Type</label>
             <select
               name="type"
               value={filters.type}
               onChange={handleChange}
-              className="w-full p-2 border rounded"
+              className="w-full mt-1 border rounded px-3 py-2"
             >
               <option value="">Any</option>
               <option value="PG">PG</option>
@@ -102,81 +106,72 @@ const Explore = () => {
             </select>
           </div>
 
-          {/* Price Filter */}
-          <div className="mb-4 text-black">
-            <label className="block font-medium mb-1">Max Price (₹)</label>
+          {/* Price */}
+          <div className="mb-5">
+            <label className="text-sm font-medium">Max Price (₹)</label>
             <input
               type="number"
               name="maxPrice"
               value={filters.maxPrice}
               onChange={handleChange}
               placeholder="e.g. 5000"
-              className="w-full p-2 border rounded"
+              className="w-full mt-1 border rounded px-3 py-2"
             />
           </div>
 
-          {/* Filter Buttons */}
           <div className="flex gap-2">
-            <button
-              onClick={handleApplyFilters}
-              className="w-1/2 bg-blue-600 text-white py-2 rounded hover:bg-blue-400"
-            >
+            <button className="flex-1 bg-purple-600 text-white py-2 rounded">
               Apply
             </button>
-
-            <button
-              onClick={handleClearFilters}
-              className="w-1/2 bg-gray-300 text-black py-2 rounded hover:bg-gray-400"
-            >
+            <button className="flex-1 bg-gray-200 py-2 rounded">
               Clear
             </button>
           </div>
         </div>
 
         {/* LISTINGS */}
-        <div className="w-full md:w-3/4 md:pl-6 mt-6 md:mt-0">
-          <h1 className="text-2xl font-bold mb-4">Explore Listings</h1>
+        <div className="flex-1">
+          <h1 className="text-3xl font-bold text-white mb-6">
+            Explore Listings
+          </h1>
 
-          {loading ? (
-            <p>Loading hostels...</p>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-
-              {hostels.map((room) => (
-                <DDCard
-                  key={room.id}
-                  image={
-                    room.images && room.images.length > 0
-                      ? `http://localhost:9092/api/images/${room.images[0]}`
-                      : "/placeholder.jpg"
-                  }
-                  title={room.name}
-                  subtitle={`Gender: ${room.genderType || "N/A"}`}
-                  description={`₹${room.pricePerMonth}/month`}
-                >
-                  {/* VERIFIED STATUS BADGE */}
-                  <span
-                    className={`inline-block mb-2 px-2 py-1 text-xs font-semibold rounded ${room.verified
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {hostels.map((room) => (
+              <DDCard
+                key={room.id}
+                image={
+                  room.images?.length
+                    ? `http://localhost:9092/api/images/${room.images[0]}`
+                    : "/placeholder.jpg"
+                }
+                title={room.name}
+                subtitle={`Gender: ${room.genderType || "N/A"}`}
+                description={`₹${room.pricePerMonth}/month`}
+              >
+                <span
+                  className={`inline-block mb-2 px-2 py-1 text-xs font-semibold rounded ${
+                    room.verified
                       ? "bg-green-100 text-green-700"
                       : "bg-yellow-100 text-yellow-700"
-                      }`}
-                  >
-                    {room.verified ? "Verified" : "Not Verified"}
-                  </span>
+                  }`}
+                >
+                  {room.verified ? "Verified" : "Not Verified"}
+                </span>
 
-                  <button className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700">
-                    View Details
-                  </button>
-                </DDCard>
-              ))}
-            </div>
-          )}
+                <button className="w-full bg-green-600 text-white py-2 rounded">
+                  View Details
+                </button>
+              </DDCard>
+            ))}
+          </div>
         </div>
+
       </div>
 
       <Footer />
     </div>
-  );
+  </div>
+);
 };
 
 export default Explore;
