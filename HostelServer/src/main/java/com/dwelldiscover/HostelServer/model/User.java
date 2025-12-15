@@ -77,8 +77,6 @@ public class User {
     public boolean isVerified() { return verified; }
     public void setVerified(boolean verified) { this.verified = verified; }
 
-
-
     // ✅ Fix this method (used in AuthService.login)
     public String getUsername() {
         return this.email; // 👈 Since your app uses email as username

@@ -40,8 +40,8 @@ public class AnalyticsRepository {
     public List<Document> monthlyRooms() {
         Aggregation agg = Aggregation.newAggregation(
                 Aggregation.project()
-                        .andExpression("month(createdAt != null ? createdAt : new Date())").as("month")
-                        .andExpression("year(createdAt != null ? createdAt : new Date())").as("year"),
+                        .andExpression("month(createdAt)").as("month")
+                        .andExpression("year(createdAt)").as("year"),
 
                 Aggregation.group("year", "month").count().as("count"),
 
@@ -50,8 +50,6 @@ public class AnalyticsRepository {
 
         return mongoTemplate.aggregate(agg, "rooms", Document.class).getMappedResults();
     }
-
-
     // -------------------------------------------------
     // 3️⃣ Rooms Per City (OK)
     // -------------------------------------------------
