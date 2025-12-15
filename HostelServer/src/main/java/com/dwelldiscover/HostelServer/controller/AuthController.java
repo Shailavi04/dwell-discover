@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
-
+import java.time.LocalDateTime;
 import java.util.*;
 
 @RestController
@@ -86,7 +86,7 @@ public class AuthController {
                 loginHistoryRepository.save(new LoginHistory(
                         null,
                         user.getEmail(),
-                        new Date(),
+                        LocalDateTime.now(),
                         request.getRemoteAddr(),
                         request.getHeader("User-Agent"),
                         false
@@ -100,13 +100,14 @@ public class AuthController {
             loginHistoryRepository.save(new LoginHistory(
                     null,
                     user.getEmail(),
-                    new Date(),
+                    LocalDateTime.now
+(),
                     request.getRemoteAddr(),
                     request.getHeader("User-Agent"),
                     true
             ));
 
-            user.setLastLoginAt(new Date());
+            user.setLastLoginAt(LocalDateTime.now());
             userRepository.save(user);
 
             // JWT Claims

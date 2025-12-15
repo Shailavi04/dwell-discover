@@ -10,12 +10,10 @@ import com.dwelldiscover.HostelServer.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Optional;
-
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -101,8 +99,8 @@ public class RoomService {
         room.setImages(imageIds);
         room.setOwneruserId(user.getId());
         room.setVerified(false);
-        room.setCreatedAt(new Date());
-        room.setUpdatedAt(new Date());
+        room.setCreatedAt(LocalDateTime.now());
+        room.setUpdatedAt(LocalDateTime.now());
 
         return roomRepository.save(room);
     }
@@ -134,7 +132,7 @@ public class RoomService {
         room.setRoomNumber(updatedData.getRoomNumber());
         room.setGenderType(updatedData.getGenderType());
         room.setSecurityDeposit(updatedData.getSecurityDeposit());
-        room.setUpdatedAt(new Date());
+        room.setUpdatedAt(LocalDateTime.now());
 
         if (newImages != null && newImages.length > 0) {
             List<String> images =
@@ -182,7 +180,7 @@ public class RoomService {
         Room room = roomRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Room not found"));
         room.setVerified(!room.isVerified());
-        room.setUpdatedAt(new Date());
+        room.setUpdatedAt(LocalDateTime.now());
         return toDTO(roomRepository.save(room));
     }
 

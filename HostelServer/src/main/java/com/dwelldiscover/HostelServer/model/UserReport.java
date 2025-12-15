@@ -2,6 +2,7 @@ package com.dwelldiscover.HostelServer.model;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+import java.time.LocalDateTime;
 import java.util.Date;
 
 @Document(collection = "userreports")
@@ -14,7 +15,7 @@ public class UserReport {
     private String entityType;       // "USER", "ROOM", etc.
     private String reportedByEmail;
     private String reason;
-    private Date createdAt = new Date();
+    private LocalDateTime createdAt = LocalDateTime.now();
     private boolean resolved = false;
 
     // ------ Getters & Setters ------
@@ -33,8 +34,13 @@ public class UserReport {
     public String getReason() { return reason; }
     public void setReason(String reason) { this.reason = reason; }
 
-    public Date getCreatedAt() { return createdAt; }
-    public void setCreatedAt(Date createdAt) { this.createdAt = createdAt; }
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
 
     public boolean isResolved() { return resolved; }
     public void setResolved(boolean resolved) { this.resolved = resolved; }

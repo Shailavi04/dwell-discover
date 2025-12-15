@@ -4,8 +4,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.annotation.CreatedDate;
-import java.util.Date;
-
+import java.time.LocalDateTime;
 
 @Document(collection = "users")
 public class User {
@@ -20,9 +19,9 @@ public class User {
     @DBRef
     private Roles role; // ✅ Reference to roles collection
     @CreatedDate
-    private Date createdAt;
+    private LocalDateTime createdAt;
     private boolean isBlocked = false;
-    private Date lastLoginAt;
+    private LocalDateTime lastLoginAt;
     private boolean verified = false;
 
 
@@ -60,8 +59,20 @@ public class User {
     public boolean isBlocked() { return isBlocked; }
     public void setBlocked(boolean blocked) { isBlocked = blocked; }
 
-    public Date getLastLoginAt() { return lastLoginAt; }
-    public void setLastLoginAt(Date lastLoginAt) { this.lastLoginAt = lastLoginAt; }
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+    public LocalDateTime getLastLoginAt() {
+        return lastLoginAt;
+    }
+
+    public void setLastLoginAt(LocalDateTime lastLoginAt) {
+        this.lastLoginAt = lastLoginAt;
+    }
 
     public boolean isVerified() { return verified; }
     public void setVerified(boolean verified) { this.verified = verified; }

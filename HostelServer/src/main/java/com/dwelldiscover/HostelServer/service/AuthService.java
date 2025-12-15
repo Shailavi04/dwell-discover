@@ -9,7 +9,7 @@ import com.dwelldiscover.HostelServer.repository.OwnerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
@@ -58,8 +58,7 @@ public class AuthService {
             owner.setUserId(savedUser.getId());   // link to user
             owner.setVerified(false);
             owner.setDocuments(new ArrayList<>());
-            owner.setUpdatedAt(new Date());
-
+            owner.setUpdatedAt(LocalDateTime.now());
             ownerRepository.save(owner);
         }
 

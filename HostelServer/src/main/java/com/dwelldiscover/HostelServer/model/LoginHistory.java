@@ -2,7 +2,7 @@ package com.dwelldiscover.HostelServer.model;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
-
+import java.time.LocalDateTime;
 import java.util.Date;
 
 @Document(collection = "login_history")
@@ -12,7 +12,7 @@ public class LoginHistory {
     private String id;
 
     private String userEmail;
-    private Date timestamp;
+    private LocalDateTime timestamp;
     private String ip;
     private String userAgent;
     private boolean success;
@@ -21,7 +21,7 @@ public class LoginHistory {
     public LoginHistory() {}
 
     // 🔹 Full constructor (this is what AuthController needs)
-    public LoginHistory(String id, String userEmail, Date timestamp,
+    public LoginHistory(String id, String userEmail, LocalDateTime timestamp,
                         String ip, String userAgent, boolean success) {
         this.id = id;
         this.userEmail = userEmail;
@@ -31,15 +31,22 @@ public class LoginHistory {
         this.success = success;
     }
 
+
     // 🔹 Getters & Setters
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
 
     public String getUserEmail() { return userEmail; }
-    public void setUserEmail(String userEmail) { this.userEmail = userEmail; }
 
-    public Date getTimestamp() { return timestamp; }
-    public void setTimestamp(Date timestamp) { this.timestamp = timestamp; }
+    public void setUserEmail(String userEmail) { this.userEmail = userEmail; }
+    public LocalDateTime getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(LocalDateTime timestamp) {
+        this.timestamp = timestamp;
+    }
+
 
     public String getIp() { return ip; }
     public void setIp(String ip) { this.ip = ip; }

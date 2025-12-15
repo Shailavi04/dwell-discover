@@ -3,8 +3,8 @@ package com.dwelldiscover.HostelServer.model;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 @Document(collection = "owners")
@@ -24,7 +24,7 @@ public class Owner {
     private String city;
     private boolean isReported = false;
 
-    private Date updatedAt = new Date();
+    private LocalDateTime updatedAt = LocalDateTime.now();
 
 
     // Getters and setters
@@ -46,6 +46,12 @@ public class Owner {
     public String getAddress() { return address; }
     public void setAddress(String address) { this.address = address; }
 
-    public Date getUpdatedAt() { return updatedAt; }
-    public void setUpdatedAt(Date updatedAt) { this.updatedAt = updatedAt; }
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
 }

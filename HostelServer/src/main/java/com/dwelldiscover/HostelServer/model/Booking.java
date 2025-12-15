@@ -28,7 +28,7 @@ public class Booking {
     private String roomId;
 
     private String bookingType;    // MONTHLY / DAILY
-    private String status;         // PENDING / APPROVED / REJECTED / CANCELLED
+    private String status;         // PENDING/ CONFIRMED / CANCELLED
 
     private double totalAmount;
 

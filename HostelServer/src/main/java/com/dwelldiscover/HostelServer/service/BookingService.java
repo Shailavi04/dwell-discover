@@ -31,19 +31,6 @@ public class BookingService {
     // ================= CREATE BOOKING =================
     public Booking createBooking(Booking booking) {
 
-        // 🚫 prevent same user booking same room twice
-        boolean alreadyBooked =
-                bookingRepo.existsByUserIdAndRoomIdAndStatus(
-                        booking.getUserId(),
-                        booking.getRoomId(),
-                        "CONFIRMED"
-                );
-
-        if (alreadyBooked) {
-            throw new RuntimeException("You already have an active booking for this room");
-        }
-
-
         Room room = roomRepo.findById(booking.getRoomId())
                 .orElseThrow(() -> new RuntimeException("Room not found"));
 
@@ -51,15 +38,6 @@ public class BookingService {
         if (room.getOccupied() >= room.getCapacity()) {
             throw new RuntimeException("Room is full");
         }
-
-        // 🔒 OCCUPY SEAT IMMEDIATELY
-        room.setOccupied(room.getOccupied() + 1);
-
-        if (room.getOccupied() >= room.getCapacity()) {
-            room.setAvailable(false);
-        }
-
-        roomRepo.save(room);
 
         booking.setPropertyId(room.getPropertyId());
 
@@ -104,6 +82,13 @@ public class BookingService {
             throw new RuntimeException("Invalid booking type");
         }
 
+        // 🔒 OCCUPY SEAT
+        room.setOccupied(room.getOccupied() + 1);
+        if (room.getOccupied() >= room.getCapacity()) {
+            room.setAvailable(false);
+        }
+        roomRepo.save(room);
+
         return bookingRepo.save(booking);
     }
 
@@ -117,57 +102,16 @@ public class BookingService {
         Room room = roomRepo.findById(booking.getRoomId())
                 .orElseThrow(() -> new RuntimeException("Room not found"));
 
-        if ("APPROVED".equalsIgnoreCase(status)) {
+        // 🔁 Only cancellation affects room occupancy now
+        if ("CANCELLED".equalsIgnoreCase(status)
+                && "CONFIRMED".equalsIgnoreCase(booking.getStatus())) {
 
-            if (room.getOccupied() >= room.getCapacity()) {
-                throw new RuntimeException("Room is full");
-            }
-
-            room.setOccupied(room.getOccupied() + 1);
-
-            if (room.getOccupied() >= room.getCapacity()) {
-                room.setAvailable(false);
-            }
-
+            room.setOccupied(Math.max(0, room.getOccupied() - 1));
+            room.setAvailable(true);
             roomRepo.save(room);
-
-        } else if ("REJECTED".equalsIgnoreCase(status)
-                || "CANCELLED".equalsIgnoreCase(status)) {
-
-            if ("APPROVED".equalsIgnoreCase(booking.getStatus())) {
-
-                if (room.getOccupied() > 0) {
-                    room.setOccupied(room.getOccupied() - 1);
-                }
-
-                room.setAvailable(true);
-                roomRepo.save(room);
-            }
         }
 
         booking.setStatus(status.toUpperCase());
-        booking.setUpdatedAt(LocalDateTime.now());
-
-        return bookingRepo.save(booking);
-    }
-
-    public Booking cancelBooking(String bookingId) {
-
-        Booking booking = bookingRepo.findById(bookingId)
-                .orElseThrow(() -> new RuntimeException("Booking not found"));
-
-        if (!"CONFIRMED".equalsIgnoreCase(booking.getStatus())) {
-            throw new RuntimeException("Only confirmed bookings can be cancelled");
-        }
-
-        Room room = roomRepo.findById(booking.getRoomId())
-                .orElseThrow(() -> new RuntimeException("Room not found"));
-
-        room.setOccupied(Math.max(0, room.getOccupied() - 1));
-        room.setAvailable(true);
-        roomRepo.save(room);
-
-        booking.setStatus("CANCELLED");
         booking.setUpdatedAt(LocalDateTime.now());
 
         return bookingRepo.save(booking);
