@@ -1,177 +1,160 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import axios from 'axios';
-import Navbar from '../MyComponents/Navbar';
-import Footer from '../MyComponents/Footer';
-import LoginButton from '../MyComponents/LoginButton';
-import HiddenNav from '../MyComponents/HiddenNav';
-import DDCard from '../MyComponents/DDCard'; // ✅ import your reusable card
+import { useEffect, useState } from "react";
+import axios from "axios";
+import HiddenNav from "../MyComponents/HiddenNav";
+import Footer from "../MyComponents/Footer";
+import DDCard from "../MyComponents/DDCard";
+import DDButton from "../MyComponents/DDButton";
 
 const Explore = () => {
+  const [rooms, setRooms] = useState<any[]>([]);
   const [filters, setFilters] = useState({
-    gender: '',
-    type: '',
-    maxPrice: '',
+    location: "",
+    gender: "",
+    type: "",
   });
 
-  const [hostels, setHostels] = useState<any[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
-
   useEffect(() => {
-    const fetchRooms = async () => {
-      setLoading(true);
-      try {
-        const response = await axios.get("http://localhost:9092/api/public/rooms");
-        setHostels(response.data);
-      } catch (error) {
-        console.error("Error fetching rooms:", error);
-      }
-      setLoading(false);
-    };
-
-    fetchRooms();
+    axios
+      .get("http://localhost:9092/api/public/rooms")
+      .then((res) => setRooms(res.data))
+      .catch(console.error);
   }, []);
 
-  const handleChange = (e: any) => {
-    const { name, value } = e.target;
-    setFilters({ ...filters, [name]: value });
-  };
+  const handleBookNow = async (roomId: string) => {
+  const token = localStorage.getItem("token");
 
-  const handleApplyFilters = () => {
-    console.log("Filters Applied:", filters);
-  };
+  if (!token) {
+    alert("Please login to book");
+    window.location.href = "/student-ui/Login";
+    return;
+  }
 
-  const handleClearFilters = () => {
-    setFilters({ gender: "", type: "", maxPrice: "" });
-  };
+  try {
+    const res = await fetch("http://localhost:9092/api/bookings", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        roomId,
+        checkInDate: new Date().toISOString().split("T")[0],
+        checkOutDate: new Date(
+          new Date().setMonth(new Date().getMonth() + 1)
+        ).toISOString().split("T")[0],
+      }),
+    });
 
-  const handleRemoveHostel = async (id: string) => {
-    try {
-      await axios.delete(`http://localhost:5000/api/hostels/${id}`);
-      setHostels(hostels.filter((h) => h._id !== id));
-    } catch (error) {
-      console.error("Error removing hostel:", error);
+    if (!res.ok) {
+      const err = await res.text();
+      alert(err || "Booking failed");
+      return;
     }
-  };
-return (
-  <div
-    className="min-h-screen bg-cover bg-center"
-    style={{ backgroundImage: "url('/your-bg-image.jpeg')" }}
-  >
-    {/* DARK OVERLAY */}
-    <div className="min-h-screen bg-black/40">
 
+    alert("✅ Booking request sent successfully!");
+  } catch (error) {
+    console.error(error);
+    alert("Something went wrong");
+  }
+};
+
+
+  return (
+    <div className="min-h-screen bg-white">
       {/* NAVBAR */}
-      <div className="px-6 pt-4 flex justify-between items-center">
+      <header className="border-b bg-white">
         <HiddenNav />
-        <LoginButton />
-      </div>
+      </header>
 
-      {/* CONTENT */}
-      <div className="max-w-7xl mx-auto px-6 py-10 flex gap-8">
 
-        {/* FILTERS */}
-        <div className="w-72 bg-white/90 backdrop-blur rounded-xl shadow-lg p-5 h-fit">
-          <h2 className="text-lg font-semibold mb-4">Filters</h2>
+      {/* HERO */}
+      <section className="max-w-7xl mx-auto px-6 pt-12 pb-6 text-black text-center">
+        <h1 className="text-3xl font-semibold mt-10 mb-6 text-center">
+          Explore nearby PGs and hotels
+        </h1>
 
-          {/* Gender */}
-          <div className="mb-4">
-            <label className="text-sm font-medium">Gender</label>
-            <select
-              name="gender"
-              value={filters.gender}
-              onChange={handleChange}
-              className="w-full mt-1 border rounded px-3 py-2"
-            >
-              <option value="">Any</option>
-              <option value="BOYS">Boys</option>
-              <option value="GIRLS">Girls</option>
-              <option value="UNISEX">Unisex</option>
-            </select>
-          </div>
 
-          {/* Type */}
-          <div className="mb-4">
-            <label className="text-sm font-medium">Type</label>
-            <select
-              name="type"
-              value={filters.type}
-              onChange={handleChange}
-              className="w-full mt-1 border rounded px-3 py-2"
-            >
-              <option value="">Any</option>
-              <option value="PG">PG</option>
-              <option value="Hostel">Hostel</option>
-            </select>
-          </div>
+        {/* SEARCH BAR */}
+        <div className="flex flex-wrap items-center justify-center gap-3 text-black bg-white border rounded-xl shadow-sm p-4 max-w-4xl mx-auto">
+          <input
+            placeholder="Enter location"
+            className="border px-4 py-3 rounded-md w-56 focus:outline-none"
+            value={filters.location}
+            onChange={(e) =>
+              setFilters({ ...filters, location: e.target.value })
+            }
+          />
 
-          {/* Price */}
-          <div className="mb-5">
-            <label className="text-sm font-medium">Max Price (₹)</label>
-            <input
-              type="number"
-              name="maxPrice"
-              value={filters.maxPrice}
-              onChange={handleChange}
-              placeholder="e.g. 5000"
-              className="w-full mt-1 border rounded px-3 py-2"
-            />
-          </div>
+          <select
+            className="border px-4 py-3 text-black rounded-md w-48"
+            value={filters.gender}
+            onChange={(e) =>
+              setFilters({ ...filters, gender: e.target.value })
+            }
+          >
+            <option value="">Select gender</option>
+            <option value="BOYS">Boys</option>
+            <option value="GIRLS">Girls</option>
+            <option value="UNISEX">Unisex</option>
+          </select>
 
-          <div className="flex gap-2">
-            <button className="flex-1 bg-purple-600 text-white py-2 rounded">
-              Apply
-            </button>
-            <button className="flex-1 bg-gray-200 py-2 rounded">
-              Clear
-            </button>
-          </div>
+          <select
+            className="border px-4 py-3 rounded-md w-40"
+            value={filters.type}
+            onChange={(e) =>
+              setFilters({ ...filters, type: e.target.value })
+            }
+          >
+            <option value="">Type</option>
+            <option value="PG">PG</option>
+            <option value="HOSTEL">Hostel</option>
+          </select>
+
+          <DDButton text="Search" />
         </div>
+      </section>
 
-        {/* LISTINGS */}
-        <div className="flex-1">
-          <h1 className="text-3xl font-bold text-white mb-6">
-            Explore Listings
-          </h1>
+      {/* LISTINGS */}
+      <section className="max-w-7xl mx-auto px-6 py-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+          {rooms.map((room) => (
+            <DDCard
+              key={room.id}
+              image={
+                room.images?.length
+                  ? `http://localhost:9092/api/images/${room.images[0]}`
+                  : "/placeholder.jpg"
+              }
+              title={room.name}
+              subtitle={`${room.genderType || "Any"} · ${room.type}`}
+              description={`₹${room.pricePerMonth} / month`}
+            >
+              <p className="text-sm text-gray-500 mt-1">
+                {room.verified ? "Verified" : "Not verified"}
+              </p>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {hostels.map((room) => (
-              <DDCard
-                key={room.id}
-                image={
-                  room.images?.length
-                    ? `http://localhost:9092/api/images/${room.images[0]}`
-                    : "/placeholder.jpg"
-                }
-                title={room.name}
-                subtitle={`Gender: ${room.genderType || "N/A"}`}
-                description={`₹${room.pricePerMonth}/month`}
-              >
-                <span
-                  className={`inline-block mb-2 px-2 py-1 text-xs font-semibold rounded ${
-                    room.verified
-                      ? "bg-green-100 text-green-700"
-                      : "bg-yellow-100 text-yellow-700"
-                  }`}
-                >
-                  {room.verified ? "Verified" : "Not Verified"}
-                </span>
+              <div className="mt-4 flex gap-3">
+                <DDButton
+                  text="View Details"
+                  className="flex-1 py-2 bg-gray-200 text-gray-800 hover:bg-gray-300"
+                />
+                <DDButton
+                  text="Book Now"
+                  onClick={() => handleBookNow(room.id)}
+                  className="w-full"
+                />
 
-                <button className="w-full bg-green-600 text-white py-2 rounded">
-                  View Details
-                </button>
-              </DDCard>
-            ))}
-          </div>
+              </div>
+            </DDCard>
+          ))}
         </div>
-
-      </div>
+      </section>
 
       <Footer />
     </div>
-  </div>
-);
+  );
 };
 
 export default Explore;
