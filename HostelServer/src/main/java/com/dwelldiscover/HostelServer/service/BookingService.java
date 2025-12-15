@@ -34,9 +34,19 @@ public class BookingService {
         Room room = roomRepo.findById(booking.getRoomId())
                 .orElseThrow(() -> new RuntimeException("Room not found"));
 
-        if (!room.isAvailable()) {
-            throw new RuntimeException("Room is not available");
+        // 🚫 HARD CAPACITY CHECK
+        if (room.getOccupied() >= room.getCapacity()) {
+            throw new RuntimeException("Room is full");
         }
+
+        // 🔒 OCCUPY SEAT IMMEDIATELY
+        room.setOccupied(room.getOccupied() + 1);
+
+        if (room.getOccupied() >= room.getCapacity()) {
+            room.setAvailable(false);
+        }
+
+        roomRepo.save(room);
 
         booking.setPropertyId(room.getPropertyId());
 
@@ -44,7 +54,9 @@ public class BookingService {
                 .orElseThrow(() -> new RuntimeException("Property not found"));
 
         booking.setOwnerId(property.getOwnerId());
-        booking.setStatus("APPROVED");
+
+        // ✅ AUTO CONFIRM
+        booking.setStatus("CONFIRMED");
 
         LocalDateTime now = LocalDateTime.now();
         booking.setCreatedAt(now);
@@ -81,6 +93,7 @@ public class BookingService {
 
         return bookingRepo.save(booking);
     }
+
 
     // ================= UPDATE STATUS =================
     public Booking updateStatus(String bookingId, String status) {
