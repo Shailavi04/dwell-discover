@@ -47,6 +47,8 @@ public class BookingService {
         booking.setStatus("APPROVED");
         booking.setCreatedAt(LocalDateTime.now());
         booking.setUpdatedAt(LocalDateTime.now());
+        LocalDateTime startDate = LocalDateTime.now();
+        booking.setStartDate(startDate);
 
         switch (booking.getBookingType()) {
 
@@ -55,6 +57,7 @@ public class BookingService {
                     throw new RuntimeException("Duration is required");
 
                 booking.setTotalAmount(room.getPricePerMonth() * booking.getDurationMonths());
+                booking.setEndDate(startDate.plusMonths(booking.getDurationMonths()));
             }
 
             case "DAILY" -> {
@@ -62,6 +65,7 @@ public class BookingService {
                     throw new RuntimeException("Days count is required");
 
                 booking.setTotalAmount(room.getPricePerDay() * booking.getDaysCount());
+                booking.setEndDate(startDate.plusDays(booking.getDaysCount()));
             }
 
             default -> throw new RuntimeException("Invalid booking type");

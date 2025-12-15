@@ -116,6 +116,7 @@ public class AuthController {
             claims.put("role", user.getRole().getName());
             claims.put("permissions", permissionsList);
             claims.put("authorities", permissionsList); // for Spring Security
+            claims.put("userId", user.getId());
 
             String token = jwtUtil.generateToken(claims, user.getEmail());
 

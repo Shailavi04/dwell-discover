@@ -40,18 +40,26 @@ public class BookingController {
         }
 
         String token = authHeader.substring(7);
-        String role = jwtUtil.extractRole(token); // <-- role from JWT
+
+        String role = jwtUtil.extractRole(token);
+        String userId = jwtUtil.extractUserId(token);
+
+        System.out.println("ROLE FROM JWT = " + role);
+        System.out.println("USER ID FROM JWT = " + userId);
 
         // 🔒 ONLY STUDENT CAN BOOK
         if (role == null || !"STUDENT".equalsIgnoreCase(role.trim())) {
-           return ResponseEntity
+            return ResponseEntity
                     .status(403)
                     .body("Only students can book rooms");
         }
-        System.out.println("ROLE FROM JWT = [" + role + "]");
+
+        // ✅ SET USER ID FROM JWT
+        booking.setUserId(userId);
 
         return ResponseEntity.ok(bookingService.createBooking(booking));
     }
+
     // UPDATE BOOKING STATUS
     @PutMapping("/{id}/status")
     public ResponseEntity<?> updateStatus(
