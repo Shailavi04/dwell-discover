@@ -47,17 +47,24 @@ export default function AdminBookingsPage() {
   const filtered = bookings.filter((b) => {
     const q = search.toLowerCase();
 
+    const userId = (b.userId || "").toLowerCase();
+    const ownerId = (b.ownerId || "").toLowerCase();
+    const roomId = (b.roomId || "").toLowerCase();
+    const id = (b.id || "").toLowerCase();
+    const status = (b.status || "").toLowerCase();
+
     const matchesSearch =
-      b.userId.toLowerCase().includes(q) ||
-      b.ownerId.toLowerCase().includes(q) ||
-      b.roomId.toLowerCase().includes(q) ||
-      b.id.toLowerCase().includes(q);
+      userId.includes(q) ||
+      ownerId.includes(q) ||
+      roomId.includes(q) ||
+      id.includes(q);
 
     const matchesFilter =
-      filter === "all" ? true : b.status.toLowerCase() === filter.toLowerCase();
+      filter === "all" ? true : status === filter.toLowerCase();
 
     return matchesSearch && matchesFilter;
   });
+
 
   if (loading)
     return <div className="p-6 text-gray-800">Loading bookings...</div>;
@@ -115,36 +122,32 @@ export default function AdminBookingsPage() {
       <div className="flex gap-3 mb-4">
         <button
           onClick={() => setFilter("all")}
-          className={`px-4 py-2 rounded-md border ${
-            filter === "all" ? "bg-blue-600 text-white" : "bg-white"
-          }`}
+          className={`px-4 py-2 rounded-md border ${filter === "all" ? "bg-blue-600 text-white" : "bg-white"
+            }`}
         >
           All
         </button>
 
         <button
           onClick={() => setFilter("pending")}
-          className={`px-4 py-2 rounded-md border ${
-            filter === "pending" ? "bg-yellow-500 text-white" : "bg-white"
-          }`}
+          className={`px-4 py-2 rounded-md border ${filter === "pending" ? "bg-yellow-500 text-white" : "bg-white"
+            }`}
         >
           Pending
         </button>
 
         <button
           onClick={() => setFilter("approved")}
-          className={`px-4 py-2 rounded-md border ${
-            filter === "approved" ? "bg-green-600 text-white" : "bg-white"
-          }`}
+          className={`px-4 py-2 rounded-md border ${filter === "approved" ? "bg-green-600 text-white" : "bg-white"
+            }`}
         >
           Approved
         </button>
 
         <button
           onClick={() => setFilter("rejected")}
-          className={`px-4 py-2 rounded-md border ${
-            filter === "rejected" ? "bg-red-600 text-white" : "bg-white"
-          }`}
+          className={`px-4 py-2 rounded-md border ${filter === "rejected" ? "bg-red-600 text-white" : "bg-white"
+            }`}
         >
           Rejected
         </button>
