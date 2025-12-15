@@ -138,6 +138,28 @@ public class BookingService {
         return bookingRepo.save(booking);
     }
 
+    public Booking cancelBooking(String bookingId) {
+
+        Booking booking = bookingRepo.findById(bookingId)
+                .orElseThrow(() -> new RuntimeException("Booking not found"));
+
+        if (!"CONFIRMED".equalsIgnoreCase(booking.getStatus())) {
+            throw new RuntimeException("Only confirmed bookings can be cancelled");
+        }
+
+        Room room = roomRepo.findById(booking.getRoomId())
+                .orElseThrow(() -> new RuntimeException("Room not found"));
+
+        room.setOccupied(Math.max(0, room.getOccupied() - 1));
+        room.setAvailable(true);
+        roomRepo.save(room);
+
+        booking.setStatus("CANCELLED");
+        booking.setUpdatedAt(LocalDateTime.now());
+
+        return bookingRepo.save(booking);
+    }
+
     // ================= FETCH BOOKINGS =================
     public List<Booking> getUserBookings(String userId) {
         return bookingRepo.findByUserId(userId);
