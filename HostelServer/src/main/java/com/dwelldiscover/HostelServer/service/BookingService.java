@@ -28,7 +28,7 @@ public class BookingService {
         return bookingRepo.findAll();
     }
 
-    // CREATE BOOKING
+    // ================= CREATE BOOKING =================
     public Booking createBooking(Booking booking) {
 
         Room room = roomRepo.findById(booking.getRoomId())
@@ -45,36 +45,44 @@ public class BookingService {
 
         booking.setOwnerId(property.getOwnerId());
         booking.setStatus("APPROVED");
-        booking.setCreatedAt(LocalDateTime.now());
-        booking.setUpdatedAt(LocalDateTime.now());
-        LocalDateTime startDate = LocalDateTime.now();
-        booking.setStartDate(startDate);
 
-        switch (booking.getBookingType()) {
+        LocalDateTime now = LocalDateTime.now();
+        booking.setCreatedAt(now);
+        booking.setUpdatedAt(now);
+        booking.setStartDate(now);
 
-            case "MONTHLY" -> {
-                if (booking.getDurationMonths() == null || booking.getDurationMonths() < 1)
-                    throw new RuntimeException("Duration is required");
+        String type = booking.getBookingType();
 
-                booking.setTotalAmount(room.getPricePerMonth() * booking.getDurationMonths());
-                booking.setEndDate(startDate.plusMonths(booking.getDurationMonths()));
+        if ("MONTHLY".equalsIgnoreCase(type)) {
+
+            if (booking.getDurationMonths() == null || booking.getDurationMonths() < 1) {
+                throw new RuntimeException("Duration is required");
             }
 
-            case "DAILY" -> {
-                if (booking.getDaysCount() == null || booking.getDaysCount() < 1)
-                    throw new RuntimeException("Days count is required");
+            booking.setTotalAmount(
+                    room.getPricePerMonth() * booking.getDurationMonths()
+            );
+            booking.setEndDate(now.plusMonths(booking.getDurationMonths()));
 
-                booking.setTotalAmount(room.getPricePerDay() * booking.getDaysCount());
-                booking.setEndDate(startDate.plusDays(booking.getDaysCount()));
+        } else if ("DAILY".equalsIgnoreCase(type)) {
+
+            if (booking.getDaysCount() == null || booking.getDaysCount() < 1) {
+                throw new RuntimeException("Days count is required");
             }
 
-            default -> throw new RuntimeException("Invalid booking type");
+            booking.setTotalAmount(
+                    room.getPricePerDay() * booking.getDaysCount()
+            );
+            booking.setEndDate(now.plusDays(booking.getDaysCount()));
+
+        } else {
+            throw new RuntimeException("Invalid booking type");
         }
 
         return bookingRepo.save(booking);
     }
 
-    // UPDATE STATUS
+    // ================= UPDATE STATUS =================
     public Booking updateStatus(String bookingId, String status) {
 
         Booking booking = bookingRepo.findById(bookingId)
@@ -83,39 +91,41 @@ public class BookingService {
         Room room = roomRepo.findById(booking.getRoomId())
                 .orElseThrow(() -> new RuntimeException("Room not found"));
 
-        switch (status) {
+        if ("APPROVED".equalsIgnoreCase(status)) {
 
-            case "APPROVED" -> {
-
-                if (room.getOccupied() >= room.getCapacity()) {
-                    throw new RuntimeException("Room is full");
-                }
-
-                room.setOccupied(room.getOccupied() + 1);
-
-                if (room.getOccupied() >= room.getCapacity()) {
-                    room.setAvailable(false);
-                }
-
-                roomRepo.save(room);
+            if (room.getOccupied() >= room.getCapacity()) {
+                throw new RuntimeException("Room is full");
             }
 
-            case "REJECTED", "CANCELLED" -> {
-                if (booking.getStatus().equals("APPROVED")) {
-                    if (room.getOccupied() > 0)
-                        room.setOccupied(room.getOccupied() - 1);
+            room.setOccupied(room.getOccupied() + 1);
 
-                    room.setAvailable(true);
-                    roomRepo.save(room);
+            if (room.getOccupied() >= room.getCapacity()) {
+                room.setAvailable(false);
+            }
+
+            roomRepo.save(room);
+
+        } else if ("REJECTED".equalsIgnoreCase(status)
+                || "CANCELLED".equalsIgnoreCase(status)) {
+
+            if ("APPROVED".equalsIgnoreCase(booking.getStatus())) {
+
+                if (room.getOccupied() > 0) {
+                    room.setOccupied(room.getOccupied() - 1);
                 }
+
+                room.setAvailable(true);
+                roomRepo.save(room);
             }
         }
 
-        booking.setStatus(status);
+        booking.setStatus(status.toUpperCase());
         booking.setUpdatedAt(LocalDateTime.now());
+
         return bookingRepo.save(booking);
     }
 
+    // ================= FETCH BOOKINGS =================
     public List<Booking> getUserBookings(String userId) {
         return bookingRepo.findByUserId(userId);
     }

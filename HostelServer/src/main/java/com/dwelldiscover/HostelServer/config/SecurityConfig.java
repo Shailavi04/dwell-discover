@@ -44,16 +44,16 @@ public class SecurityConfig {
                 )
 
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/**").permitAll()
-                        .requestMatchers("/api/public/**").permitAll()
-                        .requestMatchers("/api/images/**").permitAll()
+                                .requestMatchers("/auth/**").permitAll()
+                                .requestMatchers("/api/public/**").permitAll()
+                                .requestMatchers("/api/images/**").permitAll()
 
-                        // 🔥 Protect using permissions from JWT
-                        .requestMatchers("/api/roles/**").hasAuthority("roles")
-                        .requestMatchers("/api/analytics/**").hasAuthority("analytics")
-                        .requestMatchers("/api/property-list/**").hasAuthority("properties")
-                        .requestMatchers("/api/owners/**").hasAuthority("owners")
-                        .requestMatchers("/api/rooms/**").hasAuthority("rooms")
+                                // 🔥 Protect using permissions from JWT
+                                .requestMatchers("/api/roles/**").hasAuthority("roles")
+                                .requestMatchers("/api/analytics/**").hasAuthority("analytics")
+                                .requestMatchers("/api/property-list/**").hasAuthority("properties")
+                                .requestMatchers("/api/owners/**").hasAuthority("owners")
+                                .requestMatchers("/api/rooms/**").hasAuthority("rooms")
 // ================= BOOKINGS =================
 
 // STUDENT → create booking
@@ -70,8 +70,8 @@ public class SecurityConfig {
                                 .requestMatchers(HttpMethod.DELETE, "/api/bookings/**")
                                 .hasAuthority("bookings")
 
-                        .requestMatchers("/api/users/**").hasAuthority("users")
-                        .anyRequest().authenticated()
+                                .requestMatchers("/api/users/**").hasAuthority("users")
+                                .anyRequest().authenticated()
                 )
                 .httpBasic(httpBasic -> httpBasic.disable())
                 .formLogin(form -> form.disable());

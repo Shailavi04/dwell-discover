@@ -25,10 +25,11 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     private JwtUtil jwtUtil;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain filterChain)
-            throws ServletException, IOException {
+    protected void doFilterInternal(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            FilterChain filterChain
+    ) throws ServletException, IOException {
 
         String authHeader = request.getHeader("Authorization");
 
@@ -37,47 +38,58 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             String token = authHeader.substring(7);
 
             try {
-                // Extract username
                 String username = jwtUtil.extractUsername(token);
                 Claims claims = jwtUtil.extractAllClaims(token);
-                String role = claims.get("role", String.class);
-                String userId = claims.get("userId", String.class);
+
+                String role = (String) claims.get("role");
+                String userId = (String) claims.get("userId");
+
                 Object permsObj = claims.get("permissions");
                 Object authObj = claims.get("authorities");
 
-                System.out.println("Token Claims = " + claims);
+                List<String> permissions = new ArrayList<String>();
 
-                // ----------- FIX: extract BOTH permissions + authorities ----------
-
-                List<String> permissions = new ArrayList<>();
-
-                if (permsObj instanceof List<?> list) {
-                    list.forEach(item -> permissions.add(item.toString()));
+                // ✅ Java 8 compatible
+                if (permsObj instanceof List) {
+                    List<?> list = (List<?>) permsObj;
+                    for (Object o : list) {
+                        permissions.add(o.toString());
+                    }
                 }
 
-                if (authObj instanceof List<?> list) {
-                    list.forEach(item -> permissions.add(item.toString()));
+                if (authObj instanceof List) {
+                    List<?> list = (List<?>) authObj;
+                    for (Object o : list) {
+                        permissions.add(o.toString());
+                    }
                 }
-                if (role != null) permissions.add("ROLE_" + role);
-                if (userId != null) permissions.add("USERID_" + userId);
 
-                System.out.println("Final permissions passed to Spring = " + permissions);
+                if (role != null) {
+                    permissions.add("ROLE_" + role);
+                }
 
-                var authorities = permissions.stream()
-                        .distinct()
-                        .map(SimpleGrantedAuthority::new)
-                        .toList();
+                List<SimpleGrantedAuthority> authorities =
+                        new ArrayList<SimpleGrantedAuthority>();
 
-                // Set authentication
+                for (String p : permissions) {
+                    authorities.add(new SimpleGrantedAuthority(p));
+                }
+
                 UsernamePasswordAuthenticationToken authToken =
-                        new UsernamePasswordAuthenticationToken(username, null, authorities);
+                        new UsernamePasswordAuthenticationToken(
+                                username,
+                                null,
+                                authorities
+                        );
 
-                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                authToken.setDetails(
+                        new WebAuthenticationDetailsSource().buildDetails(request)
+                );
 
                 SecurityContextHolder.getContext().setAuthentication(authToken);
 
             } catch (Exception e) {
-                System.out.println("Invalid Token: " + e.getMessage());
+                System.out.println("JWT ERROR: " + e.getMessage());
             }
         }
 
