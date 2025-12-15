@@ -31,6 +31,19 @@ public class BookingService {
     // ================= CREATE BOOKING =================
     public Booking createBooking(Booking booking) {
 
+        // 🚫 prevent same user booking same room twice
+        boolean alreadyBooked =
+                bookingRepo.existsByUserIdAndRoomIdAndStatus(
+                        booking.getUserId(),
+                        booking.getRoomId(),
+                        "CONFIRMED"
+                );
+
+        if (alreadyBooked) {
+            throw new RuntimeException("You already have an active booking for this room");
+        }
+
+
         Room room = roomRepo.findById(booking.getRoomId())
                 .orElseThrow(() -> new RuntimeException("Room not found"));
 
