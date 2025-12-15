@@ -22,7 +22,7 @@ const Explore = () => {
       .catch(console.error);
   }, []);
 
-  const handleBookNow = async (roomId: string) => {
+const handleBookNow = async (roomId: string) => {
   const token = localStorage.getItem("token");
 
   if (!token) {
@@ -32,7 +32,7 @@ const Explore = () => {
   }
 
   try {
-    const res = await fetch("http://localhost:9092/api/bookings", {
+    const res = await fetch("http://localhost:9092/api/bookings/create", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -40,10 +40,8 @@ const Explore = () => {
       },
       body: JSON.stringify({
         roomId,
-        checkInDate: new Date().toISOString().split("T")[0],
-        checkOutDate: new Date(
-          new Date().setMonth(new Date().getMonth() + 1)
-        ).toISOString().split("T")[0],
+        bookingType: "MONTHLY",   // ✅ REQUIRED
+        durationMonths: 1         // ✅ REQUIRED for MONTHLY
       }),
     });
 
@@ -53,12 +51,13 @@ const Explore = () => {
       return;
     }
 
-    alert("✅ Booking request sent successfully!");
+    alert("✅ Booking confirmed!");
   } catch (error) {
     console.error(error);
     alert("Something went wrong");
   }
 };
+
 
 
   return (

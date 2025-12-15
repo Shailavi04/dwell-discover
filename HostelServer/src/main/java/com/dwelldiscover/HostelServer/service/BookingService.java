@@ -44,7 +44,7 @@ public class BookingService {
                 .orElseThrow(() -> new RuntimeException("Property not found"));
 
         booking.setOwnerId(property.getOwnerId());
-        booking.setStatus("PENDING");
+        booking.setStatus("APPROVED");
         booking.setCreatedAt(LocalDateTime.now());
         booking.setUpdatedAt(LocalDateTime.now());
 

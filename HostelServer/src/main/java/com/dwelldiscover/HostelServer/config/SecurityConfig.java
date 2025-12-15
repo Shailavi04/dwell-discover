@@ -54,7 +54,22 @@ public class SecurityConfig {
                         .requestMatchers("/api/property-list/**").hasAuthority("properties")
                         .requestMatchers("/api/owners/**").hasAuthority("owners")
                         .requestMatchers("/api/rooms/**").hasAuthority("rooms")
-                        .requestMatchers("/api/bookings/**").hasAuthority("bookings")
+// ================= BOOKINGS =================
+
+// STUDENT → create booking
+                                .requestMatchers(HttpMethod.POST, "/api/bookings/create")
+                                .authenticated()
+
+// OWNER / ADMIN → manage bookings
+                                .requestMatchers(HttpMethod.GET, "/api/bookings/**")
+                                .hasAuthority("bookings")
+
+                                .requestMatchers(HttpMethod.PUT, "/api/bookings/**")
+                                .hasAuthority("bookings")
+
+                                .requestMatchers(HttpMethod.DELETE, "/api/bookings/**")
+                                .hasAuthority("bookings")
+
                         .requestMatchers("/api/users/**").hasAuthority("users")
                         .anyRequest().authenticated()
                 )
