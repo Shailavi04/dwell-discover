@@ -79,4 +79,5 @@ public class AnalyticsRepository {
 
         return mongoTemplate.aggregate(agg, "owners", Document.class).getMappedResults();
     }
+    
 }

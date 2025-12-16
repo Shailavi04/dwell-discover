@@ -19,6 +19,10 @@ public class AnalyticsController {
     public AnalyticsOverviewDTO overview() {
         return analyticsService.getOverview();
     }
+    @GetMapping("/user-split")
+    public UserSplitDTO getUserSplit() {
+        return analyticsService.getUserSplit();
+    }
 
     @GetMapping("/monthly-users")
     public List<TimeCountDTO> monthlyUsers() {

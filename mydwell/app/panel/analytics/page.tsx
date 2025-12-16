@@ -24,6 +24,10 @@ type Overview = {
   totalUsers?: number;
   pendingOwners?: number;
 };
+type UserSplit = {
+  students: number;
+  owners: number;
+};
 
 type TimeCount = { label: string; count: number };
 type OwnerStatus = { status: string; count: number };
@@ -81,11 +85,15 @@ const PIE_COLORS = ["#10B981", "#F59E0B", "#EF4444", "#3B82F6", "#8B5CF6"];
 
 /* ------------------- MAIN PAGE ------------------- */
 function AnalyticsContent() {
-  const [overview, setOverview] = useState<Overview | null>(null);
+   const [overview, setOverview] = useState<Overview | null>(null);
   const [monthlyUsers, setMonthlyUsers] = useState<TimeCount[]>([]);
   const [monthlyRooms, setMonthlyRooms] = useState<TimeCount[]>([]);
   const [ownerStatus, setOwnerStatus] = useState<OwnerStatus[]>([]);
   const [roomsPerCity, setRoomsPerCity] = useState<RoomsPerCity[]>([]);
+
+  // ✅ THIS WAS REQUIRED
+  const [userSplit, setUserSplit] = useState<UserSplit | null>(null);
+
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -106,12 +114,13 @@ function AnalyticsContent() {
       setRefreshing(true);
       setError(null);
 
-      const [overviewRes, mu, mr, os, rpc] = await Promise.all([
+      const [overviewRes, mu, mr, os, rpc, us] = await Promise.all([
         apiGet("/api/analytics/overview"),
         apiGet("/api/analytics/monthly-users"),
         apiGet("/api/analytics/monthly-rooms"),
         apiGet("/api/analytics/owner-status"),
         apiGet("/api/analytics/rooms-per-city"),
+        apiGet("/api/analytics/user-split"),
       ]);
 
       setOverview(overviewRes);
@@ -119,6 +128,7 @@ function AnalyticsContent() {
       setMonthlyRooms(normalizeTimeCount(mr));
       setOwnerStatus(normalizeOwnerStatus(os));
       setRoomsPerCity(normalizeRoomsPerCity(rpc));
+      setUserSplit(us);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -126,6 +136,7 @@ function AnalyticsContent() {
       setRefreshing(false);
     }
   }
+
 
   useEffect(() => {
     loadAll();
@@ -220,6 +231,31 @@ function AnalyticsContent() {
             </ResponsiveContainer>
           </div>
         </GlassCard>
+        <GlassCard title="User Split">
+          <div className="w-full h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={[
+                    { name: "Students", value: userSplit?.students ?? 0 },
+                    { name: "Owners", value: userSplit?.owners ?? 0 },
+                  ]}
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={90}
+                  dataKey="value"
+                  label
+                >
+                  <Cell fill="#6366F1" />
+                  <Cell fill="#10B981" />
+                </Pie>
+                <Tooltip />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        </GlassCard>
+
 
         <GlassCard title="Monthly Rooms Added">
           <div className="w-full h-64">
@@ -246,3 +282,5 @@ export default function AnalyticsPage() {
     </ProtectedRoute>
   );
 }
+
+

@@ -17,6 +17,9 @@ public class AnalyticsService {
     UserRepository userRepo;
 
     @Autowired
+    StudentRepository studentRepo;
+
+    @Autowired
     OwnerRepository ownerRepo;
 
     @Autowired
@@ -30,8 +33,9 @@ public class AnalyticsService {
 
     public AnalyticsOverviewDTO getOverview() {
 
-        long totalUsers = userRepo.count();
+        long totalStudents = studentRepo.count();
         long totalOwners = ownerRepo.count();
+        long totalUsers = totalStudents + totalOwners;
         long totalRooms = roomRepo.count();
         long pendingOwners = ownerRepo.countByVerified(false);
         long verifiedOwners = ownerRepo.countByVerified(true);
@@ -55,6 +59,11 @@ public class AnalyticsService {
                 totalCities,
                 reportedRooms
         );
+    }
+    public UserSplitDTO getUserSplit() {
+        long students = studentRepo.count();
+        long owners = ownerRepo.count();
+        return new UserSplitDTO(students, owners);
     }
 
     public List<TimeCountDTO> getMonthlyUsers() {

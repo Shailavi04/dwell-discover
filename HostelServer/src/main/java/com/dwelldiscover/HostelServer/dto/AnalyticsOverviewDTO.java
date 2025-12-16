@@ -10,9 +10,17 @@ public class AnalyticsOverviewDTO {
     private long totalCities;
     private long reportedRooms;
 
-    public AnalyticsOverviewDTO(long totalUsers, long totalOwners, long totalRooms,
-                                long pendingOwners, long verifiedOwners,
-                                long totalCities, long reportedRooms) {
+    public AnalyticsOverviewDTO(
+            long totalUsers,
+            long totalOwners,
+            long totalRooms,
+            long pendingOwners,
+            long verifiedOwners,
+            long totalCities,
+            long reportedRooms
+    ) {
+        this.totalUsers = totalUsers;
+        this.totalOwners = totalOwners;
         this.totalRooms = totalRooms;
         this.pendingOwners = pendingOwners;
         this.verifiedOwners = verifiedOwners;
