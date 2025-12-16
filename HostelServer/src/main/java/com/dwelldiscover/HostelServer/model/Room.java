@@ -43,7 +43,7 @@ public class Room {
     private List<String> images;
     private List<String> roomAmenities;
 
-    private boolean isReported = false;
+    private boolean reported = false;
     private boolean verified = false;
 
 

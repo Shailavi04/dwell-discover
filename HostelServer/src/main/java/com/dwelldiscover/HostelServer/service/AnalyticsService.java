@@ -102,16 +102,15 @@ public class AnalyticsService {
                 })
                 .toList();
     }
-
     public List<TimeCountDTO> getRoomsPerCity() {
         return analyticsRepo.roomsPerCity()
                 .stream()
+                .filter(d -> d.get("_id") != null) // SAFETY
                 .map(d -> {
-                    String city = d.get("_id").toString();
+                    String city = d.get("_id", String.class);
                     Number countNum = d.get("count", Number.class);
                     return new TimeCountDTO(city, countNum.longValue());
                 })
                 .toList();
     }
-
 }
