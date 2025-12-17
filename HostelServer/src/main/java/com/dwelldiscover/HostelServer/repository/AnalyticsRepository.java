@@ -7,7 +7,7 @@ import org.springframework.data.mongodb.core.aggregation.Aggregation;
 import org.springframework.data.mongodb.core.aggregation.AggregationResults;
 import org.springframework.stereotype.Repository;
 import org.springframework.data.domain.Sort;
-
+import org.springframework.data.mongodb.core.aggregation.ConvertOperators;
 import java.util.List;
 
 @Repository
@@ -49,24 +49,41 @@ public class AnalyticsRepository {
     // ------------------------------
     // 3️⃣ Rooms Per City (🔥 ONLY CORRECT VERSION)
     // ------------------------------
+
     public List<Document> roomsPerCity() {
+
         Aggregation agg = Aggregation.newAggregation(
+
+                // 1️⃣ Convert propertyId (String) → ObjectId
+                Aggregation.addFields()
+                        .addField("propertyObjId")
+                        .withValue(
+                                ConvertOperators    .ToObjectId.toObjectId("$propertyId")
+                        )
+                        .build(),
+
+                // 2️⃣ Lookup properties
                 Aggregation.lookup(
                         "properties",
-                        "propertyId",
+                        "propertyObjId",
                         "_id",
                         "property"
                 ),
+
+                // 3️⃣ Unwind property array
                 Aggregation.unwind("property"),
-                Aggregation.match(
-                        org.springframework.data.mongodb.core.query.Criteria
-                                .where("property.city").ne(null)
-                ),
-                Aggregation.group("property.city").count().as("count"),
+
+                // 4️⃣ Group by city
+                Aggregation.group("property.city")
+                        .count().as("count"),
+
+                // 5️⃣ Sort
                 Aggregation.sort(Sort.by(Sort.Direction.DESC, "count"))
         );
 
-        return mongoTemplate.aggregate(agg, "rooms", Document.class).getMappedResults();
+        return mongoTemplate
+                .aggregate(agg, "rooms", Document.class)
+                .getMappedResults();
     }
 
     // ------------------------------
