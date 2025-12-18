@@ -22,14 +22,29 @@ public class DashboardService {
 
     public DashboardSummaryDTO getDashboardSummary() {
 
-        DashboardSummaryDTO dto = new DashboardSummaryDTO();
+        long totalUsers = userRepo.count();
+        long totalRooms = roomRepo.count();
+        long totalProperties = propertyRepo.count();
+        long pendingOwners = ownerRepo.countByVerified(false);
 
-        dto.setTotalUsers(userRepo.count());
-        dto.setTotalOwners(ownerRepo.count());
-        dto.setPendingOwners(ownerRepo.countByVerified(false));
-        dto.setTotalRooms(roomRepo.count());
-        dto.setTotalProperties(propertyRepo.count());
+        // 🔹 TEMP DATA (SAFE – frontend crash nahi hoga)
+        int newUsersThisWeek = 8;
+        int roomsAddedThisWeek = 4;
+        int ownersRegisteredThisWeek = 2;
 
-        return dto;
+        int weeklyGrowth = newUsersThisWeek > 0 ? 20 : 0;
+        boolean systemHealthy = true;
+
+        return new DashboardSummaryDTO(
+                totalUsers,
+                pendingOwners,
+                totalRooms,
+                totalProperties,
+                weeklyGrowth,
+                newUsersThisWeek,
+                roomsAddedThisWeek,
+                ownersRegisteredThisWeek,
+                systemHealthy
+        );
     }
 }
