@@ -38,51 +38,51 @@ const Dashboard: React.FC = () => {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
 
-useEffect(() => {
-  const token = localStorage.getItem("token");
+  useEffect(() => {
+    const token = localStorage.getItem("token");
 
-  fetch("http://localhost:9092/api/admin/dashboard/summary", {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  })
-    .then((res) => {
-      if (!res.ok) throw new Error("Failed to load dashboard");
-      return res.json();
+    fetch("http://localhost:9092/api/admin/dashboard/summary", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
     })
-    .then((data) => {
-      setStats({
-        totalUsers: data.totalUsers ?? 0,
-        pendingOwners: data.pendingOwners ?? 0,
-        totalRooms: data.totalRooms ?? 0,
-        totalProperties: data.totalProperties ?? 0,
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to load dashboard");
+        return res.json();
+      })
+      .then((data) => {
+        setStats({
+          totalUsers: data.totalUsers ?? 0,
+          pendingOwners: data.pendingOwners ?? 0,
+          totalRooms: data.totalRooms ?? 0,
+          totalProperties: data.totalProperties ?? 0,
 
-        weeklyGrowth:
-          data.weeklyGrowth ??
-          data.growthPercentage ??
-          0,
+          weeklyGrowth:
+            data.weeklyGrowth ??
+            data.growthPercentage ??
+            0,
 
-        newUsers:
-          data.newUsers ??
-          data.newUsersThisWeek ??
-          0,
+          newUsers:
+            data.newUsers ??
+            data.newUsersThisWeek ??
+            0,
 
-        roomsAdded:
-          data.roomsAdded ??
-          data.roomsAddedThisWeek ??
-          0,
+          roomsAdded:
+            data.roomsAdded ??
+            data.roomsAddedThisWeek ??
+            0,
 
-        ownersRegistered:
-          data.ownersRegistered ??
-          data.ownersRegisteredThisWeek ??
-          0,
+          ownersRegistered:
+            data.ownersRegistered ??
+            data.ownersRegisteredThisWeek ??
+            0,
 
-        systemHealthy: data.systemHealthy ?? true,
-      });
-    })
-    .catch(console.error)
-    .finally(() => setLoading(false));
-}, []);
+          systemHealthy: data.systemHealthy ?? true,
+        });
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, []);
 
 
   if (loading) {
@@ -112,43 +112,44 @@ useEffect(() => {
         {/* LEFT COLUMN */}
         <div className="col-span-12 lg:col-span-8 space-y-6">
           {/* HERO */}
-          <div className="bg-gradient-to-r from-[#b19cfd] via-[#a3beff] to-[#ceefff] rounded-[2.5rem] p-8 relative overflow-hidden min-h-[300px] flex flex-col justify-between shadow-sm">
-            <div className="flex items-center gap-2 text-white/90 font-medium z-10">
-              <Home size={20} className="fill-white/20" />
-              <span>Here's what's happening today:</span>
+          <div className="bg-gradient-to-r from-[#b19cfd] via-[#a3beff] to-[#ceefff]
+rounded-[2.2rem] p-6 relative overflow-hidden min-h-[220px]
+flex flex-col justify-between shadow-sm">
+
+            <div className="flex items-center gap-2 text-white/90 text-sm font-semibold">
+              <Home size={16} />
+              <span className="text-white text-[15px] font-semibold tracking-wide">
+                Here's what's happening today</span>
             </div>
 
-            <div className="space-y-4 z-10">
-              <div className="bg-white/30 backdrop-blur-md p-3 px-5 rounded-2xl flex items-center gap-3 w-fit border border-white/20">
-                <span className="bg-[#f25c5c] p-1.5 rounded-lg text-white shadow-sm">
-                  <AlertTriangle size={16} />
+            <div className="flex flex-col gap-2">
+              <div className="bg-white/40 backdrop-blur-md px-4 py-2 rounded-xl flex items-center gap-3 w-fit">
+                <span className="bg-red-500 p-1.5 rounded-lg text-white">
+                  <AlertTriangle size={14} />
                 </span>
-                <span className="font-semibold text-slate-800">
-                  {stats.pendingOwners} Owners{" "}
-                  <span className="font-normal opacity-80">
-                    need verification
-                  </span>
+                <span className="font-semibold text-slate-800 text-sm">
+                  {stats.pendingOwners} Owners
+                  <span className="font-normal opacity-80"> need verification</span>
                 </span>
               </div>
 
-              <div className="bg-white/30 backdrop-blur-md p-3 px-5 rounded-2xl flex items-center gap-3 w-fit border border-white/20">
-                <span className="bg-[#10b981] p-1.5 rounded-lg text-white shadow-sm">
-                  <CheckCircle2 size={16} />
+              <div className="bg-white/40 backdrop-blur-md px-4 py-2 rounded-xl flex items-center gap-3 w-fit">
+                <span className="bg-emerald-500 p-1.5 rounded-lg text-white">
+                  <CheckCircle2 size={14} />
                 </span>
-                <span className="font-semibold text-slate-800">
-                  User growth{" "}
+                <span className="font-semibold text-slate-800 text-sm">
+                  User growth
                   <span className="font-normal opacity-80">
-                    is up {stats.weeklyGrowth}% this week
+                    {" "}is up {stats.weeklyGrowth}% this week
                   </span>
                 </span>
               </div>
             </div>
 
-            <div className="absolute right-10 bottom-4 w-64 h-48 opacity-40 mix-blend-overlay">
-              <Building2 size={180} />
+            <div className="absolute right-6 bottom-3 opacity-20">
+              <Building2 size={140} />
             </div>
           </div>
-
           {/* MAIN STATS */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <MainStatCard
@@ -176,21 +177,22 @@ useEffect(() => {
           </div>
 
           {/* SYSTEM HEALTH */}
-  <div className="flex items-center gap-3 text-emerald-500 font-semibold">
-    <div className="bg-emerald-100 p-1.5 rounded-full">
-      <CheckCircle2 size={18} />
-    </div>
-    {stats.systemHealthy ? "System Healthy" : "System Warning"}
-  </div>
+          <div className="bg-white rounded-2xl px-6 py-4 shadow-sm border border-gray-100
+flex items-center gap-6 w-fit">
 
-  <div className="h-6 w-[1px] bg-gray-200"></div>
+            <div className="flex items-center gap-2 text-emerald-500 font-semibold text-sm">
+              <CheckCircle2 size={16} />
+              {stats.systemHealthy ? "System Healthy" : "System Warning"}
+            </div>
 
-  <div className="flex items-center gap-3 text-emerald-500 font-semibold opacity-80">
-    <Activity size={18} />
-    System Status
-  </div>
-</div>
+            <div className="h-4 w-px bg-gray-200"></div>
 
+            <div className="flex items-center gap-2 text-emerald-500 text-sm opacity-80">
+              <Activity size={16} />
+              System Status
+            </div>
+          </div>
+        </div>
 
         {/* RIGHT COLUMN */}
         <div className="col-span-12 lg:col-span-4 space-y-6">
@@ -206,6 +208,26 @@ useEffect(() => {
               <p className="text-sm text-gray-400 mt-1">
                 New Users this week
               </p>
+            </div>
+            <div className="mt-6">
+              <svg className="w-full h-16" viewBox="0 0 100 40">
+                <defs>
+                  <linearGradient id="lineGrad" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0%" stopColor="#34d399" />
+                    <stop offset="100%" stopColor="#10b981" />
+                  </linearGradient>
+                </defs>
+
+                <path
+                  d="M0 28 Q 25 18, 50 20 T 100 6"
+                  fill="none"
+                  stroke="url(#lineGrad)"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                />
+
+                <circle cx="100" cy="6" r="4" fill="#10b981" />
+              </svg>
             </div>
           </div>
 
@@ -302,17 +324,19 @@ const MainStatCard = ({
     </div>
   </div>
 );
-
 const MiniStatItem = ({ value, label }: any) => (
   <div className="flex justify-between items-center">
-    <div className="flex items-center">
-      <span className="text-emerald-500 font-bold text-xl min-w-[35px]">
+    <div className="flex items-center gap-3">
+      <span className="text-emerald-500 font-bold text-lg w-10">
         {value}
       </span>
-      <span className="text-slate-600 font-medium ml-2">{label}</span>
+      <span className="text-slate-600 font-medium text-sm">
+        {label}
+      </span>
     </div>
   </div>
 );
+
 
 const ActionCard = ({ icon, title, desc, onClick }: any) => (
   <div
