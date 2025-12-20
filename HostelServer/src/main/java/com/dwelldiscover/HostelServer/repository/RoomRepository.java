@@ -3,7 +3,6 @@ package com.dwelldiscover.HostelServer.repository;
 import com.dwelldiscover.HostelServer.model.Room;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
-
 import java.util.List;
 
 @Repository

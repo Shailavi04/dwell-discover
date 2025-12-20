@@ -57,10 +57,10 @@ public class SecurityConfig {
 // ================= BOOKINGS =================
 
 // STUDENT → create booking
+                                // ================= BOOKINGS =================
                                 .requestMatchers(HttpMethod.POST, "/api/bookings/create")
                                 .authenticated()
 
-// OWNER / ADMIN → manage bookings
                                 .requestMatchers(HttpMethod.GET, "/api/bookings/**")
                                 .hasAuthority("bookings")
 
@@ -70,8 +70,16 @@ public class SecurityConfig {
                                 .requestMatchers(HttpMethod.DELETE, "/api/bookings/**")
                                 .hasAuthority("bookings")
 
-                                .requestMatchers("/api/users/**").hasAuthority("users")
-                                .anyRequest().authenticated()
+// ================= PAYMENTS =================
+                                .requestMatchers("/api/payments/**")
+                                .authenticated()
+
+                                .requestMatchers("/api/users/**")
+                                .hasAuthority("users")
+
+                                .anyRequest()
+                                .authenticated()
+
                 )
                 .httpBasic(httpBasic -> httpBasic.disable())
                 .formLogin(form -> form.disable());

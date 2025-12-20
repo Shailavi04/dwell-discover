@@ -15,6 +15,7 @@ const Explore = () => {
     type: "",
   });
 
+  // 🔹 Load rooms
   useEffect(() => {
     axios
       .get("http://localhost:9092/api/public/rooms")
@@ -22,64 +23,122 @@ const Explore = () => {
       .catch(console.error);
   }, []);
 
-const handleBookNow = async (roomId: string) => {
-  const token = localStorage.getItem("token");
+  // 🔹 Load Razorpay script ONCE
+  useEffect(() => {
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.async = true;
+    document.body.appendChild(script);
 
-  if (!token) {
-    alert("Please login to book");
-    window.location.href = "/student-ui/Login";
-    return;
-  }
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
 
-  try {
-    const res = await fetch("http://localhost:9092/api/bookings/create", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        roomId,
-        bookingType: "MONTHLY",   // ✅ REQUIRED
-        durationMonths: 1         // ✅ REQUIRED for MONTHLY
-      }),
-    });
-
-    if (!res.ok) {
-      const err = await res.text();
-      alert(err || "Booking failed");
+  const handleBookNow = async (roomId: string) => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert("Please login to book");
+      window.location.href = "/student-ui/Login";
       return;
     }
 
-    alert("✅ Booking confirmed!");
-  } catch (error) {
-    console.error(error);
-    alert("Something went wrong");
-  }
-};
+    try {
+      // 1️⃣ Create booking
+      const bookingRes = await fetch(
+        "http://localhost:9092/api/bookings/create",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            roomId,
+            bookingType: "MONTHLY",
+            durationMonths: 1,
+          }),
+        }
+      );
 
+      if (!bookingRes.ok) {
+        alert(await bookingRes.text());
+        return;
+      }
 
+      const booking = await bookingRes.json();
+
+      // 2️⃣ Create Razorpay order
+      const orderRes = await axios.post(
+        "http://localhost:9092/api/payments/create-order",
+        {
+          bookingId: booking.id,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      // 🔹 Backend sends string → parse it
+      const order =
+        typeof orderRes.data === "string"
+          ? JSON.parse(orderRes.data)
+          : orderRes.data;
+
+      // 3️⃣ Open Razorpay
+      const options = {
+        key: "rzp_xxxxxxxxxxxx", // test key
+        amount: order.amount, // paise
+        currency: "INR",
+        name: "StayHub",
+        description: "Room Booking",
+        order_id: order.id,
+        handler: async function (response: any) {
+          await axios.post(
+            "http://localhost:9092/api/payments/verify",
+            {
+              ...response,
+              bookingId: booking.id,
+            },
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+
+          alert("✅ Payment successful & booking confirmed!");
+        },
+        theme: {
+          color: "#10b981",
+        },
+      };
+
+      const rzp = new (window as any).Razorpay(options);
+      rzp.open();
+    } catch (err) {
+      console.error(err);
+      alert("Something went wrong");
+    }
+  };
 
   return (
     <div className="min-h-screen bg-white">
-      {/* NAVBAR */}
       <header className="border-b bg-white">
         <HiddenNav />
       </header>
 
-
-      {/* HERO */}
       <section className="max-w-7xl mx-auto px-6 pt-12 pb-6 text-black text-center">
-        <h1 className="text-3xl font-semibold mt-10 mb-6 text-center">
+        <h1 className="text-3xl font-semibold mt-10 mb-6">
           Explore nearby PGs and hotels
         </h1>
 
-
-        {/* SEARCH BAR */}
-        <div className="flex flex-wrap items-center justify-center gap-3 text-black bg-white border rounded-xl shadow-sm p-4 max-w-4xl mx-auto">
+        <div className="flex flex-wrap items-center justify-center gap-3 bg-white border rounded-xl shadow-sm p-4 max-w-4xl mx-auto">
           <input
             placeholder="Enter location"
-            className="border px-4 py-3 rounded-md w-56 focus:outline-none"
+            className="border px-4 py-3 rounded-md w-56"
             value={filters.location}
             onChange={(e) =>
               setFilters({ ...filters, location: e.target.value })
@@ -87,7 +146,7 @@ const handleBookNow = async (roomId: string) => {
           />
 
           <select
-            className="border px-4 py-3 text-black rounded-md w-48"
+            className="border px-4 py-3 rounded-md w-48"
             value={filters.gender}
             onChange={(e) =>
               setFilters({ ...filters, gender: e.target.value })
@@ -115,7 +174,6 @@ const handleBookNow = async (roomId: string) => {
         </div>
       </section>
 
-      {/* LISTINGS */}
       <section className="max-w-7xl mx-auto px-6 py-12">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
           {rooms.map((room) => (
@@ -137,14 +195,13 @@ const handleBookNow = async (roomId: string) => {
               <div className="mt-4 flex gap-3">
                 <DDButton
                   text="View Details"
-                  className="flex-1 py-2 bg-gray-200 text-gray-800 hover:bg-gray-300"
+                  className="flex-1 py-2 bg-gray-200 text-gray-800"
                 />
                 <DDButton
                   text="Book Now"
                   onClick={() => handleBookNow(room.id)}
                   className="w-full"
                 />
-
               </div>
             </DDCard>
           ))}
